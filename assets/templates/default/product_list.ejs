@@ -1,0 +1,23 @@
+<% include ./header.ejs %>
+<% include ./leftList.ejs %>
+    <div class="col-md-9">
+        <!-- a list of article titles -->
+        <ul class="ul-articles">
+            <% articleList.forEach(function(one, key){ %>
+                <li class="col-md-9">
+                    <a href="<%= originalUrl + "/" + one.id %>"><%=one.title%></a>
+                    <% if (new Date().getTime() / 1000 - one.puttime < 172800) { %>
+                        &nbsp;&nbsp;<span class="badge badge-new">NEW</span>
+                    <% } %>
+                </li>
+                <div class="fright"><%=dateFormat(one.puttime).substr(0, 10)%></div>
+            <% }) %>
+        </ul>
+        <!-- END a list of article titles -->
+        <% if (articleList.length > 0)  { %>
+            <% include ./pagination.ejs %>
+        <% } else { %>
+            抱歉，本栏目还没有文章。
+        <% } %>
+    </div>
+<% include ./footer.ejs %>
