@@ -47,11 +47,11 @@ module.exports.connections = {
         // password: 'GpmliC5uvfL3o61bG23mfojBu7Ox5Iv9',
         // database: 'IlEIPmNWaimmVCGTMijz',
         // port: 4050
-        host: process.env.DATABASE_HOST,
+        host: process.env.DATABASE_HOST || "202.121.178.141" ,
         user: 'root',
-        password: 'rootadmin',
-        database: 'nodecms',
-        port: process.env.DATABASE_PORT
+        password: 'Syjcb@225',
+        database: 'MDPA',
+        port: process.env.DATABASE_PORT || 3306
     },
 
     /***************************************************************************

@@ -103,6 +103,8 @@ function getCategories(req, res) {
 
 module.exports = {
     index: function(req, res, next) {
+        res.locals.view = "index";
+        return res.templet({});
         res.locals.originalUrl = req.originalUrl;
 
         Article.find({
