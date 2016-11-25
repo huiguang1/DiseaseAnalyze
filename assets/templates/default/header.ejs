@@ -13,7 +13,7 @@
     <meta name="description" content="Designa Studio, a HTML5 / CSS3 template.">
     <meta name="author" content="Sylvain Lafitte, Web Designer, sylvainlafitte.com">
     
-    <title>卫生信息共享技术平台</title>
+    <title>Genotype Phenotype Search</title>
     
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 
@@ -45,140 +45,19 @@
                     <img alt="Brand" src="<%=static_dir%>/img/logo.png"/>
                 </a>
                 <a class="navbar-brand" id="my-brand">
-                    <p>卫生信息共享技术平台</p>
+                    <p>遗传病搜索</p>
                 </a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
-                    <!--li><a href="javascript:void(0);" onclick="SetHome(this, window.location.host);">设为首页</a></li-->
-                    <li><a href="/bbs">论坛</a></li>
-                    <li><a href="javascript:void(0);" onclick="setFavor('卫生信息共享技术平台', window.location.host);">加入收藏</a></li>
+                    <li><a href="javascript:void(0);" onclick="setFavor('Genotype Phenotype Search', window.location.host);">加入收藏</a></li>
                     <li><a href="#">联系我们</a></li>
                 </ul>
-                <form class="navbar-form navbar-right" role="search" method="get" action="/searchResult">
-                    <img src="<%=static_dir%>/img/search.png"/>
-                    <div class="form-group">
-                        <input type="text" class="form-control" placeholder="请输入关键词" name="keyWord" />
-                    </div>
-                    <!--<button type="submit" class="btn btn-default">Submit</button> -->
-                </form>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
     </nav>
 
     <div class="container">
-        <!-- slide是设置轮播的动画效果（平缓过渡）默认是5秒切换一次-->
-        <div id="myCarousel" class="carousel slide">
-            <!--用作指示器-->
-            <ol class="carousel-indicators">
-                <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
-                <li data-target="#myCarousel" data-slide-to="1"></li>
-                <li data-target="#myCarousel" data-slide-to="2"></li>
-            </ol>
-
-            <div class="carousel-inner">
-                <!--每一个整体都用一个.item定义一下active表示默认显示-->
-                <% HeaderImgArticles.forEach(function(one, index){ %>
-                <div <%if(index==0){%> class="item active"<%}else%>class="item" onclick="window.location='/index/imgnews/<%=one.id%>'" style="cursor:pointer">
-                    <img style="height:300px;width:100%" src=<%=one.thumb%> alt="">
-                </div>
-                <% }) %>
-            </div>
-        </div>
-
-        <nav class="navbar navbar-default" id="my-navbar">
-            <div class="container-fluid">
-                <!-- Brand and toggle get grouped for better mobile display -->
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                </div>
-
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="nav navbar-nav col-md-12">
-                        <li class="main-but col-md-2" <% if(currentMenu[0] == "home"){ %> id="myActive" <% } %>><a href="/">首页</a></li>
-                        <li class="dropdown col-md-2" onmouseover="showMenu(1)" onmouseout="hideMenu(1)">
-                            <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                               aria-haspopup="true" aria-expanded="false" <% if(currentMenu[0] == "industry") { %> id="myActive" <% } %> >
-                                中心·行业
-                                <span class="caret"></span>
-                            </a>
-                            <ul class="dropdown-menu my-dropdown1">
-                                <li><a href="/index/industry_industryPublish">行业发布</a></li>
-                                <li><a href="/index/industry_centreDynamics">中心动态</a></li>
-                                <li><a href="/index/industry_news">新闻资讯</a></li>
-                                <!--li role="separator" class="divider"></li-->
-                                <li><a href="/index/industry_laws">法律法规</a></li>
-                                <li><a href="/index/industry_academicExchange">学术交流</a></li>
-                                <li><a href="/index/industry_software_healthPlatform">软件产品</a></li>
-                                <li><a href="/index/industry_appExamples">应用示范</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown col-md-2" onmouseover="showMenu(2)" onmouseout="hideMenu(2)">
-                            <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                               aria-haspopup="true" aria-expanded="false" <% if(currentMenu[0] == "standard") { %> id="myActive" <% } %> >
-                                中心·标准
-                                <span class="caret"></span>
-                            </a>
-                            <ul class="dropdown-menu my-dropdown2">
-                                <li><a href="/index/standard_standardDynamics">标准动态</a></li>
-                                <li><a href="/index/standard_standardResearch_basic">标准研究</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown col-md-2" onmouseover="showMenu(3)" onmouseout="hideMenu(3)">
-                            <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                               aria-haspopup="true" aria-expanded="false" <% if(currentMenu[0] == "technology") { %> id="myActive" <% } %> >
-                                中心·技术
-                                <span class="caret"></span>
-                            </a>
-                            <ul class="dropdown-menu my-dropdown3">
-                                <li><a href="/index/technology_techDynamics">技术动态</a></li>
-                                <li><a href="/index/technology_techProject_infoshare">技术专题</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown col-md-2" onmouseover="showMenu(4)" onmouseout="hideMenu(4)">
-                            <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                               aria-haspopup="true" aria-expanded="false" <% if(currentMenu[0] == "service") { %> id="myActive" <% } %> >
-                                中心·服务
-                                <span class="caret"></span>
-                            </a>
-                            <ul class="dropdown-menu my-dropdown4">
-                                <li><a href="/index/service_members">会员服务</a></li>
-                                <li><a href="/index/service_thirdParty">第三方服务</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown col-md-2" onmouseover="showMenu(5)" onmouseout="hideMenu(5)">
-                            <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                               aria-haspopup="true" aria-expanded="false" <% if(currentMenu[0] == "about") { %> id="myActive" <% } %> >
-                                关于中心
-                                <span class="caret"></span>
-                            </a>
-                            <ul class="dropdown-menu my-dropdown5">
-                                <li><a href="/index/about_introduction">中心介绍</a></li>
-                                <li><a href="/index/about_organization">组织架构</a></li>
-                                <li><a href="/index/about_team">人才队伍</a></li>
-                                <li><a href="/index/about_award">荣誉奖项</a></li>
-                                <li><a href="/index/about_case">典型案例</a></li>
-                                <li><a href="/index/about_contact">联系方式</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div><!-- /.navbar-collapse -->
-                <script>
-                    function showMenu(menuId){
-                        document.getElementsByClassName('my-dropdown'+menuId)[0].style.display = 'block';
-                    }
-                    function hideMenu(menuId){
-                        document.getElementsByClassName('my-dropdown'+menuId)[0].style.display = 'none';
-                    }
-                </script>
-            </div><!-- /.container-fluid -->
-        </nav>
         <div class="home-page main">

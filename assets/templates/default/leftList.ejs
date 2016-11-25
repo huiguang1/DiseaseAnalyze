@@ -1,11 +1,9 @@
 <div class="col-md-3 left-list">
-    <% if (parentCategory != null) {%>
     <ul class="left-list-head">
-        <li><%=parentCategory.name%></li>
+        <li>树形图</li>
     </ul>
     <ul class="left-list-body">
         <% categoryList.forEach(function(one, key){ %>
-        <% if (one.listorder == 1) { %>
         <li>
             <a href="javascript:void(0)"
                <% if (one.dir==currentMenu[1]) { %>id="myActive1"<% } %>
@@ -28,12 +26,6 @@
                 <% }) %>
             </ul>
         </li>
-        <% } else { %>
-        <li>
-            <a href="/index/<%=currentMenu[0]+"_"+one.dir%>" <% if (one.dir==currentMenu[1]) { %>id="myActive1"<% } %>><%=one.name%></a>
-        </li>
-        <% } %>
         <% }) %>
     </ul>
-    <% } %>
 </div>
