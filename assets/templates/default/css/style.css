@@ -24,7 +24,7 @@ html, button, input, select, textarea {
 	font-smoothing: antialiased;
 	text-shadow: 1px 1px 1px rgba(0,0,0,0.004);}
 
-body { margin: 0; font-size: 14px; line-height: 2; font-family: 宋体, Arial, sans-serif; }
+body { margin: 0; font-size: 14px; font-family: 宋体, Arial, sans-serif; }
 .main a:hover { color: #7AB42A; }
 
 a { color: #0078CF; font-weight: normal;
@@ -87,7 +87,6 @@ td{vertical-align:top}
 
 /* -- FORMS
 ------------------------------------------------------------- */
-form{margin-top: 2em;}
 form li{margin-bottom: 1.5em;}
 label{display: block; margin-bottom:1em; font-weight: 700;}
 input, select, textarea {

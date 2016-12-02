@@ -1,19 +1,173 @@
 <% include ./header.ejs %>
 <div class="row">
-    推荐信息
+    <div class="col-md-4"></div>
+    <div class="col-md-8">推荐信息</div>
 </div>
 <div class="row">
+    <!--左侧边栏-->
     <div class="col-md-4">
-        左侧边栏
+        <script language="javascript">
+            $(document).ready(function() {
+                $.ui.dynatree.nodedatadefaults["icon"] = false;
+                $("#tree").dynatree({
+                    title: "Lazy loading sample",
+                    fx: {height: "toggle", duration: 200},
+                    autoFocus: false, // Set focus to first child, when expanding or lazy-loading.
+                    checkbox: true,
+                    initAjax: {
+                        url: "http://202.121.178.141/cgi-bin/MDPA/HPOTreeData.cgi",
+                        data: {"ID": 'all'}
+                    },
+                    onLazyRead: function (node) {
+                        node.appendAjax({
+                            url: "http://202.121.178.141/cgi-bin/MDPA/HPOTreeData.cgi",
+                            data: {"ID": node.data.key}
+                            // We don't want the next line in production code:
+                            // debugLazyDelay: 750
+                        });
+                    },
+                    onActivate: function (node) {
+
+                    }
+                });
+            });
+        </script>
+        <div class=mainBox id="tree">
+        </div>
     </div>
     <div class="col-md-8">
-        <div class="row">
-            搜索框
+        <!--搜索栏-->
+        <div class="row search-area">
+            <script type="text/javascript">
+                $(document).ready(function() {
+                    $("#sel_menu2").select2({
+                        multiple:true,
+                        placeholder:'Please enter some terms or keywords',
+                        ajax:
+                        {
+                            url:"http://202.121.178.141/cgi-bin/MDPA/SearchDB.cgi",
+                            dataType: 'json',
+                            delay: 600,
+                            contentType:"application/x-www-form-urlencoded;charset=UTF-8",
+                            data: function (params){
+                                return {
+                                    q: params.term, // search term
+                                    page: params.page
+                                };
+                            },
+                            processResults: function (data, page)
+                            {
+                                return{
+                                    results: data.items
+                                };
+                            },
+                            cache:true
+                        },
+                        escapeMarkup: function (markup)
+                        {
+                            //console.debug(markup)
+                            return markup;
+                        }, // let our custom formatter work
+                        minimumInputLength: 2,
+                        //maximumInputLength: 40,
+                        templateResult:formatRepo,
+                        templateSelection:formatRepoSelection
+                    }).on("change", function(e)
+                    {
+                        insertRow("0000005");
+                    })
+                });
+                function formatRepo(repo)
+                {
+                    if (repo.loading) return repo.text;
+                    repo.text = repo.name
+                    repo.id = repo.id
+                    var markup = '<option class="select2-option-click" value='+repo.id+'>'+ repo.id+'|'+repo.text+'</option>';
+                    return markup;
+                }
+
+                function formatRepoSelection(repo){
+                    repo.selected = true;
+                    repo.name = repo.id
+                    if(repo.id == null || repo.name == ""){
+                        repo.id = 'Please type items'
+                        repo.name = repo.text
+                    }
+                    return repo.text;
+                }
+            </script>
+            <FORM METHOD=GET id='form1' ACTION="http://202.121.178.141/cgi-bin/Test/main.page.pl">
+                <div class="col-md-10 search-div">
+                    <select id="sel_menu2" name="HPO" multiple="multiple" class="form-control">
+                    </select>
+                </div>
+                <input type='button' value="GO" class="btn btn-primary col-md-2 search-btn" onclick=''>
+            </FORM>
         </div>
+        <!--列表-->
+        <script type="text/javascript">
+            function insertRow(id) {
+                $.ajax(
+                        {
+                            type : 'GET',
+                            url : 'http://202.121.178.141/cgi-bin/MDPA/NodeInfo.cgi',
+                            data : "ID=" + id,
+                            success : function(data)
+                            {
+                                var row = $.parseJSON(data);
+                                var newRow = $('<tr role="row" class="color-palette"></tr>');
+                                var newName = $('<td>'+row.chname+'</td>');
+                                var newDcrp = $('<td>'+row.description+'</td>');
+                                var newLeaf = $('<td>'+row.children+'</td>');
+                                newRow.append(newName);
+                                newRow.append(newDcrp);
+                                newRow.append(newLeaf);
+                                $('#tableBody').append(newRow);
+                            },
+                            error : function()
+                            {
+                                alert("网络连接异常");
+                            }
+                        });
+            }
+            $(".select2-results__option").on("click", function(e) { insertRow(100); });
+            $(".select2-selection__choice__remove").on("click", function(e) { alert(0); })
+        </script>
         <div class="row">
-            结果列表
+            <table  class="table table-bordered table-striped dataTable" role="grid" >
+                <thead>
+                <tr role="row">
+                    <th>名字</th>
+                    <th>描述</th>
+                    <th>子节点</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody">
+                <tr role="row" class="color-palette">
+                    <td>名字1</td>
+                    <td>描述1</td>
+                    <td>子节点1</td>
+                </tr>
+                <tr role="row" class="color-palette">
+                    <td>名字2</td>
+                    <td>描述2</td>
+                    <td>子节点2</td>
+                </tr>
+                <tr role="row" class="color-palette">
+                    <td>名字3</td>
+                    <td>描述3</td>
+                    <td>子节点3</td>
+                </tr>
+                <tr role="row" class="color-palette">
+                    <td>名字4</td>
+                    <td>描述4</td>
+                    <td>子节点4</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+
 
 <% include ./footer.ejs %>
