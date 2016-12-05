@@ -72,9 +72,12 @@
                         //maximumInputLength: 40,
                         templateResult:formatRepo,
                         templateSelection:formatRepoSelection
-                    }).on("change", function(e)
+                    }).on("select2:select", function(e)
                     {
-                        insertRow("0000005");
+                        insertRow(e.params.data.id.substr(3));
+                    }).on("select2:unselect", function(e){
+                        id = e.params.data.id.substr(3);
+                        $('#row-hp-'+id).remove();
                     })
                 });
                 function formatRepo(repo)
@@ -115,7 +118,7 @@
                             success : function(data)
                             {
                                 var row = $.parseJSON(data);
-                                var newRow = $('<tr role="row" class="color-palette"></tr>');
+                                var newRow = $('<tr role="row" class="color-palette" id="row-hp-'+ id +'"></tr>');
                                 var newName = $('<td>'+row.chname+'</td>');
                                 var newDcrp = $('<td>'+row.description+'</td>');
                                 var newLeaf = $('<td>'+row.children+'</td>');
