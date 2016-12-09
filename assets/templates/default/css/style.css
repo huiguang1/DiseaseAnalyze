@@ -87,7 +87,6 @@ td{vertical-align:top}
 
 /* -- FORMS
 ------------------------------------------------------------- */
-form li{margin-bottom: 1.5em;}
 label{display: block; margin-bottom:1em; font-weight: 700;}
 input, select, textarea {
 	border: 1px solid #DDD;

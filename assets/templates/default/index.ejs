@@ -14,6 +14,13 @@
                     fx: {height: "toggle", duration: 200},
                     autoFocus: false, // Set focus to first child, when expanding or lazy-loading.
                     checkbox: true,
+                    onSelect: function(flag, node){
+                        if (flag){
+                            addSelect(node.data.key, node.data.title);
+                        } else {
+                            rmvSelect(node.data.key);
+                        }
+                    },
                     initAjax: {
                         url: "http://202.121.178.141/cgi-bin/MDPA/HPOTreeData.cgi",
                         data: {"ID": 'all'}
@@ -72,12 +79,11 @@
                         //maximumInputLength: 40,
                         templateResult:formatRepo,
                         templateSelection:formatRepoSelection
-                    }).on("select2:select", function(e)
+                    }).on("select2:select", function(e)//搜索栏中添加一项时，与列表进行同步
                     {
                         insertRow(e.params.data.id.substr(3));
-                    }).on("select2:unselect", function(e){
-                        id = e.params.data.id.substr(3);
-                        $('#row-hp-'+id).remove();
+                    }).on("select2:unselect", function(e){//搜索栏中删除一项时，与列表进行同步
+                        removeRow(e.params.data.id.substr(3));
                     })
                 });
                 function formatRepo(repo)
@@ -98,6 +104,46 @@
                     }
                     return repo.text;
                 }
+
+                //向搜索栏中添加一项，并且与列表进行同步
+                //这是由于从select2外部直接修改标签元素时，不会触发事件，所以需要同步
+                function addSelect(id, name){
+                    var ID = 'HP:' + id;
+                    var $searchBox = $('#sel_menu2');
+                    if ($.inArray(ID, $searchBox.val()) != -1) return;
+                    var op1 = '<option value="'+ID+'" selected>'+name+'</option>'
+                    $searchBox.append(op1).trigger("change");
+                    insertRow(id);
+                }
+
+                //从搜索栏中删除一项，并且与列表进行同步
+                function rmvSelect(id){
+                    var $searchBox = $('#sel_menu2');
+                    var found = 0;
+                    for (var i in $searchBox.children())
+                    {
+                        if ($searchBox.children()[i].value == "HP:" + id)
+                        {
+                            $searchBox.children()[i].remove();
+                            found = 1;
+                            break;
+                        }
+                    }
+                    for (var i in $searchBox.children())
+                    {
+                        if ($searchBox.children()[i].value == "HP:" + id)
+                        {
+                            $searchBox.children()[i].remove();
+                            found = 1;
+                            break;
+                        }
+                    }
+                    if (found === 1)
+                    {
+                        $searchBox.trigger('change');
+                        removeRow(id);
+                    }
+                }
             </script>
             <FORM METHOD=GET id='form1' ACTION="http://202.121.178.141/cgi-bin/Test/main.page.pl">
                 <div class="col-md-10 search-div">
@@ -109,7 +155,14 @@
         </div>
         <!--列表-->
         <script type="text/javascript">
+            //列表在一开始是隐藏的
+            $(document).ready(function() {
+                $("#diseaseTable").hide();
+            })
+            //在列表中添加一项
             function insertRow(id) {
+                $("#diseaseTable").show();
+                var $table = $('#tableBody');
                 $.ajax(
                         {
                             type : 'GET',
@@ -120,12 +173,18 @@
                                 var row = $.parseJSON(data);
                                 var newRow = $('<tr role="row" class="color-palette" id="row-hp-'+ id +'"></tr>');
                                 var newName = $('<td>'+row.chname+'</td>');
+                                if (row.description == "NULL") row.description = "";
                                 var newDcrp = $('<td>'+row.description+'</td>');
-                                var newLeaf = $('<td>'+row.children+'</td>');
+                                var links = "";
+                                for (var i in row.children){
+                                    links += '<a onclick="addSelect(\''+row.children[i].key+'\', \''+row.children[i].chname+
+                                                    '\')">'+row.children[i].chname+'</a>&nbsp;';
+                                }
+                                var newLeaf = $('<td>'+links+'</td>');
                                 newRow.append(newName);
                                 newRow.append(newDcrp);
                                 newRow.append(newLeaf);
-                                $('#tableBody').append(newRow);
+                                $table.append(newRow);
                             },
                             error : function()
                             {
@@ -133,11 +192,15 @@
                             }
                         });
             }
-            $(".select2-results__option").on("click", function(e) { insertRow(100); });
-            $(".select2-selection__choice__remove").on("click", function(e) { alert(0); })
+            //在列表中删除一项
+            function removeRow(id) {
+                var $table = $('#tableBody');
+                $table.children('#row-hp-'+id).remove();
+                if ($table.children().length == 0) $("#diseaseTable").hide();
+            }
         </script>
         <div class="row">
-            <table  class="table table-bordered table-striped dataTable" role="grid" >
+            <table id="diseaseTable" class="table table-bordered table-striped dataTable" role="grid">
                 <thead>
                 <tr role="row">
                     <th>名字</th>
@@ -145,28 +208,7 @@
                     <th>子节点</th>
                 </tr>
                 </thead>
-                <tbody id="tableBody">
-                <tr role="row" class="color-palette">
-                    <td>名字1</td>
-                    <td>描述1</td>
-                    <td>子节点1</td>
-                </tr>
-                <tr role="row" class="color-palette">
-                    <td>名字2</td>
-                    <td>描述2</td>
-                    <td>子节点2</td>
-                </tr>
-                <tr role="row" class="color-palette">
-                    <td>名字3</td>
-                    <td>描述3</td>
-                    <td>子节点3</td>
-                </tr>
-                <tr role="row" class="color-palette">
-                    <td>名字4</td>
-                    <td>描述4</td>
-                    <td>子节点4</td>
-                </tr>
-                </tbody>
+                <tbody id="tableBody"></tbody>
             </table>
         </div>
     </div>
