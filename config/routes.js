@@ -35,7 +35,7 @@ module.exports.routes = {
     controller: 'IndexController'
   },
 
-  '/index/:category': {
+  '/list': {
     controller: 'IndexController',
     action: 'list'
   },

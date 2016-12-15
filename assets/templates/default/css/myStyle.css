@@ -2,3 +2,7 @@
 .search-area { position: relative; }
 .search-btn { height: 100%; position: absolute; }
 .dataTable { margin-top: 1em; }
+.dataTable thead { background-color: #AAFFEE; }
+.dataTable tbody tr { background-color: white; }
+body { background-color: rgb(234, 246, 249); }
+span.dynatree-selected a { font-style: normal; color: black; }

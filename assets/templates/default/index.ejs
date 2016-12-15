@@ -1,9 +1,5 @@
 <% include ./header.ejs %>
 <div class="row">
-    <div class="col-md-4"></div>
-    <div class="col-md-8">推荐信息</div>
-</div>
-<div class="row">
     <!--左侧边栏-->
     <div class="col-md-4">
         <script language="javascript">
@@ -14,12 +10,9 @@
                     fx: {height: "toggle", duration: 200},
                     autoFocus: false, // Set focus to first child, when expanding or lazy-loading.
                     checkbox: true,
+                    onActivate: function(node){},
                     onSelect: function(flag, node){
-                        if (flag){
-                            addSelect(node.data.key, node.data.title);
-                        } else {
-                            rmvSelect(node.data.key);
-                        }
+                        addSelect(node.data.key, node.data.title);
                     },
                     initAjax: {
                         url: "http://202.121.178.141/cgi-bin/MDPA/HPOTreeData.cgi",
@@ -32,9 +25,6 @@
                             // We don't want the next line in production code:
                             // debugLazyDelay: 750
                         });
-                    },
-                    onActivate: function (node) {
-
                     }
                 });
             });
@@ -43,6 +33,11 @@
         </div>
     </div>
     <div class="col-md-8">
+        推荐信息:
+        <span id="rcmd-0000478" class="badge" onclick="addSelect(this.id.substr(5), this.innerText)">眼部异常</span>
+        <span id="rcmd-0000598" class="badge" onclick="addSelect(this.id.substr(5), this.innerText)">耳部异常</span>
+        <span id="rcmd-0000707" class="badge" onclick="addSelect(this.id.substr(5), this.innerText)">神经系统异常</span>
+        <hr>
         <!--搜索栏-->
         <div class="row search-area">
             <script type="text/javascript">
@@ -145,12 +140,12 @@
                     }
                 }
             </script>
-            <FORM METHOD=GET id='form1' ACTION="http://202.121.178.141/cgi-bin/Test/main.page.pl">
+            <FORM METHOD=GET id='form1' ACTION="/list">
                 <div class="col-md-10 search-div">
                     <select id="sel_menu2" name="HPO" multiple="multiple" class="form-control">
                     </select>
                 </div>
-                <input type='button' value="GO" class="btn btn-primary col-md-2 search-btn" onclick=''>
+                <input type='button' value="搜索" class="btn btn-primary col-md-2 search-btn" onclick='submit()'>
             </FORM>
         </div>
         <!--列表-->
@@ -161,6 +156,7 @@
             })
             //在列表中添加一项
             function insertRow(id) {
+                $("#table-tip").hide();
                 $("#diseaseTable").show();
                 var $table = $('#tableBody');
                 $.ajax(
@@ -196,16 +192,24 @@
             function removeRow(id) {
                 var $table = $('#tableBody');
                 $table.children('#row-hp-'+id).remove();
-                if ($table.children().length == 0) $("#diseaseTable").hide();
+                if ($table.children().length == 0) {
+                    $("#diseaseTable").hide();
+                    $("#table-tip").show();
+                }
             }
         </script>
         <div class="row">
+            <label id="table-tip">
+                <br/>
+                <br/>
+                请在搜索栏中输入，或点击左侧树状图中的箭头按钮，即可显示详细信息
+            </label>
             <table id="diseaseTable" class="table table-bordered table-striped dataTable" role="grid">
                 <thead>
                 <tr role="row">
-                    <th>名字</th>
-                    <th>描述</th>
-                    <th>子节点</th>
+                    <th title="症状名">名字&nbsp;</th>
+                    <th title="症状的详细解释">描述</th>
+                    <th title="该症状所包含的具体症状，点击可添加">详细</th>
                 </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>

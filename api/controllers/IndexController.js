@@ -14,166 +14,70 @@ function getNArray(n){
     return arr;
 }
 
-function getImgArticles(res){
-    Article.find({
-        category: '35',
-        limit: 5
-    }).then(function(articles){
-        res.locals.ImgArticles = articles;
-        res.locals.HeaderImgArticles = articles.slice(1, 4);
-
-        return res.templet({});
-    });
-}
-
-function getCategories(req, res) {
-    var category = req.param("category").trim();
-    var leveledCategory = category.split("_");//get categories of different levels
-    var retId = 0;
-    //get category of level 0
-    return Category.findOne({
-        dir: leveledCategory[0],
-        parent: '0'
-    }).then(function (cate) {
-        res.locals.parentCategory = cate;
-        res.locals.currentMenu[0] = cate.dir;
-
-        //get category of level 1 (if there is)
-        if (leveledCategory.length > 1) {
-            return Category.findOne({
-                dir: leveledCategory[1],
-                parent: cate.id
-            });
-        }
-        else
-        {
-            return cate;
-        }
-    }).then(function (cate) {
-        res.locals.category = cate;
-        res.locals.currentMenu[1] = cate.dir;
-        //get category of level 2 (if there is)
-        if (leveledCategory.length > 2) {
-            return Category.findOne({
-                dir: leveledCategory[2],
-                parent: cate.id
-            })
-        }
-        else {
-            return cate;
-        }
-    }).then(function (cate) {
-        if (cate.id != res.locals.category.id) {
-            res.locals.category = cate;
-            res.locals.currentMenu[2] = cate.dir;
-        }
-        retId = cate.id;
-        //get level2 category list
-        return Category.find({
-            parent: res.locals.parentCategory.id
-        });
-    }).then(function (categories) {
-        res.locals.categoryList = categories;
-        var level3Parent = -1;
-        if (leveledCategory.length >= 2)
-        {
-            categories.forEach(function(one, key){
-                if (one.listorder == '1'){
-                    level3Parent = one.id;
-                }
-            });
-        }
-        if (level3Parent != -1)
-        {
-            //get level3 category list
-            return Category.find({
-                parent: level3Parent
-            });
-        }
-        else
-        {
-            return categories;
-        }
-    }).then(function (categories) {
-        res.locals.category3List = categories;
-        if (res.locals.parentCategory.id == 35) res.locals.parentCategory = null;
-        return retId;
-    });
-}
-
 module.exports = {
+    /**
+     * index page(main page)
+     */
     index: function(req, res, next) {
         res.locals.view = "index";
         return res.templet({});
-        res.locals.originalUrl = req.originalUrl;
-
-        Article.find({
-            category: '39',
-            limit: 12,
-            sort: "puttime DESC"
-        }).then(function (articles) {
-            res.locals.newsArticles = articles;
-
-            return Article.find({
-                category: '40',
-                limit: 4,
-                sort: "puttime DESC"
-            })
-        }).then(function (articles) {
-            res.locals.centreArticles = articles;
-
-            return Article.find({
-                category: '42',
-                limit: 4,
-                sort: "puttime DESC"
-            })
-        }).then(function (articles) {
-            res.locals.techArticles = articles;
-
-            res.locals.currentMenu = new Array("home");
-            res.locals.theme = "default";
-            res.locals.view = "index";
-            return getImgArticles(res);
-        }, function reject(err) {
-            return next(err);
-        });
     },
-/*
-    index: function(req, res, next) {
-        Product.find({
-            sort: "listorder ASC",
-            limit: 4
-        }).then(function(products) {
-            res.locals.products = products;
-
-            return Fragment.find({
-                varname: "home_intro"
-            });
-        }).then(function(fragmentes) {
-            if (fragmentes) {
-                fragmentes.forEach(function(one, key) {
-                    res.locals[one.varname] = one.content;
-                });
-            }
-
-            return Slide.find();
-        }).then(function(slides) {
-            res.locals.slides = slides;
-
-            res.locals.currentMenu = "home";
-            res.locals.theme = "default";
-            res.locals.view = "index";
-            return res.templet({});
-        }, function reject(err) {
-            return next(err);
-        });
-    },*/
-
 
     /**
-     * list page
+     * list page(search result)
      */
     list: function(req, res, next) {
+        res.locals.view = "product_list";
+        return res.templet({});
+
+        var hpo = req.param("HPO");
+        var http = require('http');
+        new Promise(function (resolve, rej) {
+            var req = http.request({
+                hostname: '202.121.178.141',
+                path: '/cgi-bin/MDPA/NodeInfo.cgi?ID=' + hpo[0].substr(3)
+            }, function(res) {
+                resolve(res);
+            });
+            req.on('error', function(e){
+                console.log("request error, try again");
+            });
+            req.end();
+        }).then(function(res){
+            console.log(res);
+        }, function(err) {
+            return next(err);
+        });
+        return res.templet({});
+
+
+
+        var promises = [];
+        for (var i=0;i<hpo.length;i++){
+            promises[i] = new Promise(function (resolve, rej) {
+                var req = http.request({
+                    hostname: '202.121.178.141',
+                    path: '/cgi-bin/MDPA/NodeInfo.cgi?ID=' + hpo[i].substr(3)
+                }, function(res) {
+                    resolve(res);
+                });
+                req.on('error', function(e){
+                    console.log("request error, try again");
+                });
+                req.end();
+            });
+        }
+        Promise.all(promises).then(function (res){
+            console.log("res is: "+ res);
+        });
+
+        return res.templet({});
+
+
+
+
+
+
         var page = req.param("page") ? parseInt(req.param("page").trim()) : 1;
 
         var skip = (page - 1) * pageSize;

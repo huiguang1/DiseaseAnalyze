@@ -1,23 +1,38 @@
 <% include ./header.ejs %>
-<% include ./leftList.ejs %>
-    <div class="col-md-9">
-        <!-- a list of article titles -->
-        <ul class="ul-articles">
-            <% articleList.forEach(function(one, key){ %>
-                <li class="col-md-9">
-                    <a href="<%= originalUrl + "/" + one.id %>"><%=one.title%></a>
-                    <% if (new Date().getTime() / 1000 - one.puttime < 172800) { %>
-                        &nbsp;&nbsp;<span class="badge badge-new">NEW</span>
-                    <% } %>
-                </li>
-                <div class="fright"><%=dateFormat(one.puttime).substr(0, 10)%></div>
-            <% }) %>
-        </ul>
-        <!-- END a list of article titles -->
-        <% if (articleList.length > 0)  { %>
-            <% include ./pagination.ejs %>
-        <% } else { %>
-            抱歉，本栏目还没有文章。
-        <% } %>
-    </div>
+<div class="col-md-6">
+    <!-- a list of diseases -->
+    <script type="text/javascript">
+        //取URL参数
+        function getUrlParam(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)", "g"); //构造一个含有目标参数的正则表达式对象
+            var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+            r[0] = decodeURIComponent(r[0]);
+            for (var i = 1;i< r.length;i++){
+                r[i] = r[i].substr(1);//去除&
+                r[i] = decodeURIComponent(r[i]);//URI解码（16进制序列转为实际字符）
+            }
+            return r;
+        }
+        $(document).ready(function () {
+            var hpo = getUrlParam("HPO");
+            for (var i in hpo){
+
+            }
+        })
+    </script>
+    <ul class="ul-articles">
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+    </ul>
+    <!-- pagination -->
+    <% //if (articleList.length > 0)  { %>
+        <% //include ./pagination.ejs %>
+    <% //} else { %>
+        <a href="/index">没有找到结果，点击返回搜索页</a>
+    <% //} %>
+</div>
+<div class="col-md-6">
+
+</div>
 <% include ./footer.ejs %>
