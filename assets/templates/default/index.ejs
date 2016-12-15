@@ -84,8 +84,7 @@
                 function formatRepo(repo)
                 {
                     if (repo.loading) return repo.text;
-                    repo.text = repo.name
-                    repo.id = repo.id
+                    repo.text = repo.name;
                     var markup = '<option class="select2-option-click" value='+repo.id+'>'+ repo.id+'|'+repo.text+'</option>';
                     return markup;
                 }

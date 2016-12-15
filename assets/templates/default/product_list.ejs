@@ -1,38 +1,154 @@
 <% include ./header.ejs %>
-<div class="col-md-6">
-    <!-- a list of diseases -->
-    <script type="text/javascript">
-        //取URL参数
-        function getUrlParam(name) {
-            var reg = new RegExp("(^|&)" + name + "=([^&]*)", "g"); //构造一个含有目标参数的正则表达式对象
-            var r = window.location.search.substr(1).match(reg);  //匹配目标参数
-            r[0] = decodeURIComponent(r[0]);
-            for (var i = 1;i< r.length;i++){
-                r[i] = r[i].substr(1);//去除&
-                r[i] = decodeURIComponent(r[i]);//URI解码（16进制序列转为实际字符）
+<div class="row">
+    <div class="col-md-6">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $("#sel_menu2").select2({
+                    multiple:true,
+                    placeholder:'Please enter some terms or keywords',
+                    ajax:
+                    {
+                        url:"http://202.121.178.141/cgi-bin/MDPA/SearchDB.cgi",
+                        dataType: 'json',
+                        delay: 600,
+                        contentType:"application/x-www-form-urlencoded;charset=UTF-8",
+                        data: function (params){
+                            return {
+                                q: params.term, // search term
+                                page: params.page
+                            };
+                        },
+                        processResults: function (data, page)
+                        {
+                            return{
+                                results: data.items
+                            };
+                        },
+                        cache:true
+                    },
+                    escapeMarkup: function (markup)
+                    {
+                        //console.debug(markup)
+                        return markup;
+                    }, // let our custom formatter work
+                    minimumInputLength: 2,
+                    //maximumInputLength: 40,
+                    templateResult:formatRepo,
+                    templateSelection:formatRepoSelection
+                })
+            });
+            function formatRepo(repo)
+            {
+                if (repo.loading) return repo.text;
+                repo.text = repo.name;
+                var markup = '<option class="select2-option-click" value='+repo.id+'>'+ repo.id+'|'+repo.text+'</option>';
+                return markup;
             }
-            return r;
-        }
-        $(document).ready(function () {
-            var hpo = getUrlParam("HPO");
-            for (var i in hpo){
+            function formatRepoSelection(repo){
+                repo.selected = true;
+                repo.name = repo.id
+                if(repo.id == null || repo.name == ""){
+                    repo.id = 'Please type items'
+                    repo.name = repo.text
+                }
+                return repo.text;
+            }
 
+            //向搜索栏中添加一项
+            function addSelect(id, name){
+                var ID = 'HP:' + id;
+                var $searchBox = $('#sel_menu2');
+                if ($.inArray(ID, $searchBox.val()) != -1) return;
+                var op1 = '<option value="'+ID+'" selected>'+name+'</option>'
+                $searchBox.append(op1).trigger("change");
             }
-        })
-    </script>
-    <ul class="ul-articles">
-        <li>1</li>
-        <li>2</li>
-        <li>3</li>
-    </ul>
-    <!-- pagination -->
-    <% //if (articleList.length > 0)  { %>
-        <% //include ./pagination.ejs %>
-    <% //} else { %>
-        <a href="/index">没有找到结果，点击返回搜索页</a>
-    <% //} %>
+
+            //从搜索栏中删除一项
+            function rmvSelect(id){
+                var $searchBox = $('#sel_menu2');
+                var found = 0;
+                for (var i in $searchBox.children())
+                {
+                    if ($searchBox.children()[i].value == "HP:" + id)
+                    {
+                        $searchBox.children()[i].remove();
+                        found = 1;
+                        break;
+                    }
+                }
+                for (var i in $searchBox.children())
+                {
+                    if ($searchBox.children()[i].value == "HP:" + id)
+                    {
+                        $searchBox.children()[i].remove();
+                        found = 1;
+                        break;
+                    }
+                }
+                if (found === 1)
+                {
+                    $searchBox.trigger('change');
+                }
+            }
+        </script>
+        <!--搜索栏-->
+        <FORM METHOD=GET id='form1' ACTION="/list">
+            <div class="col-md-10 search-div">
+                <select id="sel_menu2" name="HPO" multiple="multiple" class="form-control">
+                </select>
+            </div>
+            <input type='button' value="搜索" class="btn btn-primary col-md-2 search-btn" onclick='submit()'>
+        </FORM>
+    </div>
 </div>
-<div class="col-md-6">
+<br/>
+<div class="row">
+    <div class="col-md-6">
+        <!--逐条显示疾病-->
+        <script type="text/javascript">
+            //取URL参数
+            function getUrlParam(name) {
+                var reg = new RegExp("(^|&)" + name + "=([^&]*)", "g"); //构造一个含有目标参数的正则表达式对象
+                var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+                r[0] = decodeURIComponent(r[0]);
+                for (var i = 1;i< r.length;i++){
+                    r[i] = r[i].substr(1);//去除&
+                    r[i] = decodeURIComponent(r[i]);//URI解码（16进制序列转为实际字符）
+                }
+                return r;
+            }
+            $(document).ready(function () {
+                var hpo = getUrlParam("HPO");
+                for (var i in hpo){
 
+                }
+            })
+        </script>
+        <ul class="ul-articles">
+            <li>1</li>
+            <li>2</li>
+            <li>3</li>
+        </ul>
+        <!-- pagination -->
+        <% //if (articleList.length > 0)  { %>
+            <% //include ./pagination.ejs %>
+        <% //} else { %>
+            <a href="/index">没有找到结果，点击返回搜索页</a>
+        <% //} %>
+    </div>
+    <div class="col-md-6">
+        <!--疾病对应的症状-->
+        <table class="table table-bordered table-striped dataTable" role="grid">
+            <thead>
+            <tr role="row">
+                <th title="症状名">名字&nbsp;</th>
+                <th title="症状的详细解释">描述</th>
+                <th title="该症状所包含的具体症状，点击可添加">详细</th>
+            </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+        <input id="" value="" name="" type="checkbox">只显示共有的症状
+    </div>
 </div>
 <% include ./footer.ejs %>
