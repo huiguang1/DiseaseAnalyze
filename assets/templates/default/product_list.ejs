@@ -1,154 +1,304 @@
 <% include ./header.ejs %>
+<script type="text/javascript">
+    //取URL参数的辅助函数
+    function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)", "g"); //构造一个含有目标参数的正则表达式对象
+        var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+        r[0] = decodeURIComponent(r[0]);
+        for (var i = 1;i< r.length;i++){
+            r[i] = r[i].substr(1);//去除&
+            r[i] = decodeURIComponent(r[i]);//URI解码（16进制序列转为实际字符）
+        }
+        return r;
+    }
+</script>
 <div class="row">
-    <div class="col-md-6">
-        <script type="text/javascript">
-            $(document).ready(function() {
-                $("#sel_menu2").select2({
-                    multiple:true,
-                    placeholder:'Please enter some terms or keywords',
-                    ajax:
-                    {
-                        url:"http://202.121.178.141/cgi-bin/MDPA/SearchDB.cgi",
-                        dataType: 'json',
-                        delay: 600,
-                        contentType:"application/x-www-form-urlencoded;charset=UTF-8",
-                        data: function (params){
-                            return {
-                                q: params.term, // search term
-                                page: params.page
-                            };
-                        },
-                        processResults: function (data, page)
-                        {
-                            return{
-                                results: data.items
-                            };
-                        },
-                        cache:true
-                    },
-                    escapeMarkup: function (markup)
-                    {
-                        //console.debug(markup)
-                        return markup;
-                    }, // let our custom formatter work
-                    minimumInputLength: 2,
-                    //maximumInputLength: 40,
-                    templateResult:formatRepo,
-                    templateSelection:formatRepoSelection
-                })
-            });
-            function formatRepo(repo)
-            {
-                if (repo.loading) return repo.text;
-                repo.text = repo.name;
-                var markup = '<option class="select2-option-click" value='+repo.id+'>'+ repo.id+'|'+repo.text+'</option>';
-                return markup;
-            }
-            function formatRepoSelection(repo){
-                repo.selected = true;
-                repo.name = repo.id
-                if(repo.id == null || repo.name == ""){
-                    repo.id = 'Please type items'
-                    repo.name = repo.text
-                }
-                return repo.text;
-            }
-
-            //向搜索栏中添加一项
-            function addSelect(id, name){
-                var ID = 'HP:' + id;
-                var $searchBox = $('#sel_menu2');
-                if ($.inArray(ID, $searchBox.val()) != -1) return;
-                var op1 = '<option value="'+ID+'" selected>'+name+'</option>'
-                $searchBox.append(op1).trigger("change");
-            }
-
-            //从搜索栏中删除一项
-            function rmvSelect(id){
-                var $searchBox = $('#sel_menu2');
-                var found = 0;
-                for (var i in $searchBox.children())
-                {
-                    if ($searchBox.children()[i].value == "HP:" + id)
-                    {
-                        $searchBox.children()[i].remove();
-                        found = 1;
-                        break;
-                    }
-                }
-                for (var i in $searchBox.children())
-                {
-                    if ($searchBox.children()[i].value == "HP:" + id)
-                    {
-                        $searchBox.children()[i].remove();
-                        found = 1;
-                        break;
-                    }
-                }
-                if (found === 1)
-                {
-                    $searchBox.trigger('change');
-                }
-            }
-        </script>
-        <!--搜索栏-->
-        <FORM METHOD=GET id='form1' ACTION="/list">
-            <div class="col-md-10 search-div">
-                <select id="sel_menu2" name="HPO" multiple="multiple" class="form-control">
-                </select>
-            </div>
-            <input type='button' value="搜索" class="btn btn-primary col-md-2 search-btn" onclick='submit()'>
-        </FORM>
-    </div>
-</div>
-<br/>
-<div class="row">
-    <div class="col-md-6">
+    <div class="col-md-8">
         <!--逐条显示疾病-->
-        <script type="text/javascript">
-            //取URL参数
-            function getUrlParam(name) {
-                var reg = new RegExp("(^|&)" + name + "=([^&]*)", "g"); //构造一个含有目标参数的正则表达式对象
-                var r = window.location.search.substr(1).match(reg);  //匹配目标参数
-                r[0] = decodeURIComponent(r[0]);
-                for (var i = 1;i< r.length;i++){
-                    r[i] = r[i].substr(1);//去除&
-                    r[i] = decodeURIComponent(r[i]);//URI解码（16进制序列转为实际字符）
-                }
-                return r;
-            }
-            $(document).ready(function () {
-                var hpo = getUrlParam("HPO");
-                for (var i in hpo){
-
-                }
-            })
-        </script>
-        <ul class="ul-articles">
-            <li>1</li>
-            <li>2</li>
-            <li>3</li>
-        </ul>
-        <!-- pagination -->
-        <% //if (articleList.length > 0)  { %>
-            <% //include ./pagination.ejs %>
-        <% //} else { %>
-            <a href="/index">没有找到结果，点击返回搜索页</a>
-        <% //} %>
+        <div id="diseaseList">搜索结果加载中，请稍候……</div>
+        <div id="pagination-disease"></div>
     </div>
-    <div class="col-md-6">
-        <!--疾病对应的症状-->
-        <table class="table table-bordered table-striped dataTable" role="grid">
-            <thead>
-            <tr role="row">
-                <th title="症状名">名字&nbsp;</th>
-                <th title="症状的详细解释">描述</th>
-                <th title="该症状所包含的具体症状，点击可添加">详细</th>
-            </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-        <input id="" value="" name="" type="checkbox">只显示共有的症状
+    <div class="col-md-4">
+        <div class="sticky-right col-md-3">
+            <script type="text/javascript">
+                var checkedDisease = [];
+                var selectedDisease = [];
+                //更新症状列表
+                function refreshTable(){
+                    alert(selectedDisease);
+                    $.ajax(
+                            {
+                                type : 'GET',
+                                url : 'http://202.121.178.141/cgi-bin/MDPA/DiseaseSet.cgi',
+                                data : {
+                                    OMIM: selectedDisease,
+                                    action: $("input[name='showType']:checked").val()
+                                },
+                                success : function(data)
+                                {
+                                    var raw = $.parseJSON(data);
+                                    //当没有相应症状时，隐藏列表及其相关元素
+                                    var $pagination = $('#pagination-phenotype');
+                                    var $radio = $('#radio-phenotype');
+                                    var $table = $('#table-phenotype');
+                                    var $label = $('#table-tip');
+                                    if (raw.length == 0){
+                                        $radio.hide();
+                                        $table.hide();
+                                        $pagination.hide();
+                                        $label.show();
+                                        return;
+                                    }
+                                    //否则显示他们
+                                    $table.show();
+                                    $radio.show();
+                                    $pagination.show();
+                                    $label.hide();
+                                    $pagination.pagination({
+                                        dataSource: raw,//数据源，此处为数组
+                                        pageSize: 5,//每页显示的数量
+                                        //pageRange: 9, 在本页页码单侧最多显示的页数
+                                        callback: function(data, pagination) {
+                                            var html = '';
+                                            for (var i = 0;i < data.length;i++){
+                                                html += '<tr role="row" class="color-palette">';
+                                                html += '<td><a href="javascript:void(0);" onclick="addSelect(\''+data[i].key+'\',\''+data[i].chname+'\')">'+
+                                                        data[i].chname+'</a></td>';
+                                                if (data[i].description == 'NULL') data[i].description = '';
+                                                html += '<td>'+data[i].description+'</td>';
+                                                html += '</tr>';
+                                            }
+                                            $('#tableBody').html(html);
+                                        }
+                                    });
+                                },
+                                error : function()
+                                {
+                                    alert("网络连接异常");
+                                }
+                            }
+                    );
+                }
+                function addDisease(checkBox, ID, index){
+                    if (checkBox.checked){//选中某疾病
+                        checkedDisease[index] = 1;//保存勾选框状态
+                        if (selectedDisease.indexOf(ID) == -1) selectedDisease.push(ID);//保存选中的疾病ID
+                    } else {//反选某疾病
+                        checkedDisease[index] = 0;
+                        selectedDisease.splice(selectedDisease.indexOf(ID), 1);
+                    }
+                    //更新症状列表
+                    refreshTable();
+                }
+                $(document).ready(function() {
+                    $('#radio-phenotype').hide();
+                    $('#table-phenotype').hide();
+                    var $searchBox = $('#sel_menu2');
+                    var $diseaseList = $('#diseaseList');
+                    if ($searchBox.children().length === 0) {
+                        $diseaseList.html('<a href="/index">没有找到结果，点击返回搜索页</a>');
+                        return;
+                    }
+                    var data="";
+                    for (var i = 0;i < $searchBox.children().length;i++) {
+                        data += 'HPO=' + $searchBox.children()[i].value + '&';
+                    }
+                    data += 'guid=' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                                var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+                                return v.toString(16);
+                            });
+                    $.ajax(
+                            {
+                                type : 'GET',
+                                url : 'http://202.121.178.141/cgi-bin/MDPA/GPSEngine.cgi',
+                                data : data,
+                                success : function(data)
+                                {
+                                    var raw = $.parseJSON(data);
+                                    for (var i = 0;i < raw.length;i++){
+                                        checkedDisease[i] = 0;
+                                    }
+                                    $('#pagination-disease').pagination({
+                                        dataSource: raw,//数据源，此处为数组
+                                        pageSize: 10,//每页显示的数量
+                                        showPrevious: false,//是否显示上页按钮
+                                        showNext: false,//是否显示下页按钮
+                                        pageRange: 9, //在本页页码单侧最多显示的页数
+                                        callback: function(data, pagination) {
+                                            var html = '';
+                                            for (var i = 0;i < data.length;i++){
+                                                //由于pagination.js不会保存和载入checkbox的状态，所以手动载入。
+                                                var index = pagination.pageNumber * 10 - 10 + i;
+                                                var checked = checkedDisease[index] > 0 ?
+                                                        'checked' : '';
+
+                                                html += '<div class="block-disease">';
+                                                html += '<div class="title-disease">';
+                                                html += '<input id="disease-'+data[i].ID+'" type="checkbox" ' +
+                                                        'onclick="addDisease(this, ' + data[i].ID + ', ' + index + ')" ' + checked + '>';
+                                                html += '<a href="#">' + data[i].NO + '. ' + data[i].Name + '</a>';
+                                                html += '</div>';
+                                                if (data[i].Description) {
+                                                    html += '<div class="description-disease">';
+                                                    html += data[i].Description;
+                                                    html += '</div>';
+                                                }
+                                                if (data[i].Genes) {
+                                                    html += '<div class="gene-disease"><b>Gene(Cytogenetic location): </b>';
+                                                    for (var j = 0; j < data[i].Genes.length; j++) {
+                                                        html += '<a href="#">' + data[i].Genes[j].gene + '(' + data[i].Genes[j].cytoband + '); </a>';
+                                                    }
+                                                    html += '</div>';
+                                                }
+                                                html += '<div class="others-disease"><b>OMIM:' + data[i].ID + '</b>'
+                                                html += '<i>Score: ' + data[i].Score + '</i></div>';
+                                                html += '</div>';
+                                            }
+                                            $('#diseaseList').html(html);
+                                            window.scrollTo(0,0);
+                                        }
+                                    });
+                                },
+                                error : function()
+                                {
+                                    $diseaseList.html('<a href="/index">网络连接异常，点击返回搜索页</a>');
+                                }
+                            });
+
+                    $searchBox.select2({
+                        multiple:true,
+                        placeholder:'Please enter some terms or keywords',
+                        ajax:
+                        {
+                            url:"http://202.121.178.141/cgi-bin/MDPA/SearchDB.cgi",
+                            dataType: 'json',
+                            delay: 500,
+                            contentType:"application/x-www-form-urlencoded;charset=UTF-8",
+                            data: function (params){
+                                return {
+                                    q: params.term, // search term
+                                    page: params.page
+                                };
+                            },
+                            processResults: function (data, page)
+                            {
+                                return{
+                                    results: data.items
+                                };
+                            },
+                            cache:true
+                        },
+                        escapeMarkup: function (markup)
+                        {
+                            //console.debug(markup)
+                            return markup;
+                        }, // let our custom formatter work
+                        minimumInputLength: 2,
+                        //maximumInputLength: 40,
+                        templateResult:formatRepo,
+                        templateSelection:formatRepoSelection
+                    });
+                });
+                function formatRepo(repo)
+                {
+                    if (repo.loading) return repo.text;
+                    repo.text = repo.name;
+                    var markup = '<option class="select2-option-click" value='+repo.id+'>'+ repo.id+'|'+repo.text+'</option>';
+                    return markup;
+                }
+                function formatRepoSelection(repo){
+                    repo.selected = true;
+                    repo.name = repo.id
+                    if(repo.id == null || repo.name == ""){
+                        repo.id = 'Please type items'
+                        repo.name = repo.text
+                    }
+                    return repo.text;
+                }
+
+                //向搜索栏中添加一项
+                function addSelect(id, name){
+                    var ID = 'HP:' + id;
+                    var $searchBox = $('#sel_menu2');
+                    if ($.inArray(ID, $searchBox.val()) != -1) return;
+                    var op1 = '<option value="'+ID+'" selected>'+name+'</option>'
+                    $searchBox.append(op1).trigger("change");
+                }
+
+                //从搜索栏中删除一项
+                function rmvSelect(id){
+                    var $searchBox = $('#sel_menu2');
+                    var found = 0;
+                    for (var i in $searchBox.children())
+                    {
+                        if ($searchBox.children()[i].value == "HP:" + id)
+                        {
+                            $searchBox.children()[i].remove();
+                            found = 1;
+                            break;
+                        }
+                    }
+                    for (var i in $searchBox.children())
+                    {
+                        if ($searchBox.children()[i].value == "HP:" + id)
+                        {
+                            $searchBox.children()[i].remove();
+                            found = 1;
+                            break;
+                        }
+                    }
+                    if (found === 1)
+                    {
+                        $searchBox.trigger('change');
+                    }
+                }
+
+                //提交表格。每一个搜索项包含ID和名称。
+                function searchSubmit(){
+                    var form = $("#sel_menu2");
+                    for (var i = 0;i < form.children().length;i++){
+                        form.children()[i].value += '$' + form.children()[i].innerHTML;
+                    }
+                    $('#form1').submit();
+                }
+            </script>
+            <!--搜索栏-->
+            <FORM METHOD=POST id='form1' ACTION="/list">
+                <div class="row search-area">
+                    <div class="col-md-10 search-div">
+                        <select id="sel_menu2" name="HPO" multiple="multiple" class="form-control">
+                            <% if (typeof(searched) != 'undefined') {
+                                    for (var i = 0;i < searched.length;i++) { %>
+                                        <option value="<%-searched[i][0]%>" selected><%-searched[i][1]%></option>
+                            <%      }
+                               }
+                            %>
+                        </select>
+                    </div>
+                    <input type='button' value="搜索" class="btn btn-primary col-md-2 search-btn" onclick='searchSubmit()'>
+                </div>
+            </FORM>
+            <!--疾病对应的症状列表-->
+            <label id="table-tip">
+                <br/>
+                <br/>
+                勾选左侧疾病名即可查看相关症状
+            </label>
+            <div id="radio-phenotype">
+                <input id="show-union" value="intersection" name="showType" type="radio" onchange="refreshTable()" checked>只显示共有症状
+                <input id="show-nonUnion" value="unique" name="showType" type="radio" onchange="refreshTable()">只显示非共有症状
+            </div>
+            <div id="pagination-phenotype"></div>
+            <table id="table-phenotype" class="table table-bordered table-striped dataTable" role="grid">
+                <thead>
+                <tr role="row">
+                    <th title="症状名" class="col-md-3">名字</th>
+                    <th title="症状的详细解释" class="col-md-9">描述</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 <% include ./footer.ejs %>

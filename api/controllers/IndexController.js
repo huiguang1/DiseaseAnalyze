@@ -27,7 +27,17 @@ module.exports = {
      * list page(search result)
      */
     list: function(req, res, next) {
+        var hpo = req.param("HPO");
         res.locals.view = "product_list";
+        if (!hpo) return next();
+        res.locals.searched = [];
+        if (typeof hpo == 'string'){
+            hpo = [ hpo ];
+        }
+        for (var i = 0;i < hpo.length;i++){
+            var idnName = hpo[i].split('$');
+            res.locals.searched[i] = idnName;
+        }
         return res.templet({});
 
         var hpo = req.param("HPO");

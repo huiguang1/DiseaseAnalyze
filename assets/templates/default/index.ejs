@@ -79,7 +79,7 @@
                         insertRow(e.params.data.id.substr(3));
                     }).on("select2:unselect", function(e){//搜索栏中删除一项时，与列表进行同步
                         removeRow(e.params.data.id.substr(3));
-                    })
+                    });
                 });
                 function formatRepo(repo)
                 {
@@ -138,13 +138,22 @@
                         removeRow(id);
                     }
                 }
+
+                //提交表格。每一个搜索项包含ID和名称。
+                function searchSubmit(){
+                    var form = $("#sel_menu2");
+                    for (var i = 0;i < form.children().length;i++){
+                        form.children()[i].value += '$' + form.children()[i].innerHTML;
+                    }
+                    $('#form1').submit();
+                }
             </script>
-            <FORM METHOD=GET id='form1' ACTION="/list">
+            <FORM METHOD=POST id='form1' ACTION="/list">
                 <div class="col-md-10 search-div">
                     <select id="sel_menu2" name="HPO" multiple="multiple" class="form-control">
                     </select>
                 </div>
-                <input type='button' value="搜索" class="btn btn-primary col-md-2 search-btn" onclick='submit()'>
+                <input id="go-btn" type='button' value="搜索" class="btn btn-primary col-md-2 search-btn" onclick='searchSubmit()'>
             </FORM>
         </div>
         <!--列表-->
@@ -197,7 +206,7 @@
                 }
             }
         </script>
-        <div class="row">
+        <div class="row noMargin">
             <label id="table-tip">
                 <br/>
                 <br/>
@@ -206,9 +215,9 @@
             <table id="diseaseTable" class="table table-bordered table-striped dataTable" role="grid">
                 <thead>
                 <tr role="row">
-                    <th title="症状名">名字&nbsp;</th>
-                    <th title="症状的详细解释">描述</th>
-                    <th title="该症状所包含的具体症状，点击可添加">详细</th>
+                    <th class="col-md-2" title="症状名">名字</th>
+                    <th class="col-md-4" title="症状的详细解释">描述</th>
+                    <th class="col-md-6" title="该症状所包含的具体症状，点击可添加">详细</th>
                 </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>

@@ -294,7 +294,7 @@ nav li { text-align: center; }
 .navbar-default .dropdown:hover { border-top: solid 3px #80BA30; margin-top: -3px; }
 .navbar-default .main-but:hover { border-top: solid 3px #80BA30; margin-top: -3px; }
 .navbar-default .col-md-2 { padding-left: 0px; padding-right: 0px; }
-#my-brand { color: #FFFFFF; font-size: 17px; font-family: 宋体, Arial, sans-serif; }
+#my-brand { color: #FFFFFF; font-size: 2em; font-family: 宋体, Arial, sans-serif; }
 .navbar-default .navbar-nav > li > a { color: #323232; }
 .navbar-default .navbar-nav > #myActive > a { color: white; }
 #my-navbar { border: 1px solid lightgrey; border-radius: 0px; border-bottom-width: 2px; }

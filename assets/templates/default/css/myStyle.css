@@ -1,8 +1,22 @@
 .search-div { padding-left: 0; padding-right: 0; }
-.search-area { position: relative; }
+.search-area { position: relative; margin-left: 0; margin-right: 0;}
 .search-btn { height: 100%; position: absolute; }
 .dataTable { margin-top: 1em; }
 .dataTable thead { background-color: #AAFFEE; }
 .dataTable tbody tr { background-color: white; }
 body { background-color: rgb(234, 246, 249); }
 span.dynatree-selected a { font-style: normal; color: black; }
+.sticky-right {position: fixed; top: 100px; padding-left: 0; padding-right: 0; }
+.noMargin { margin-left: 0; margin-right: 0; }
+.navbar-inverse { background-color: #0a3e7a; }
+
+/* disease list
+-------------------------------------------------- */
+.block-disease { margin-bottom: 2em; }
+.title-disease { font-size: 1.2em; }
+.title-disease a { color: #0000cc; }
+.title-disease a:hover { color: orangered; }
+.gene-disease a { color: #0078CF; }
+.description-disease { text-align: justify; }
+.others-disease b { color: green; font-size: 1.2em; }
+.others-disease i { color: grey; float: right; }
