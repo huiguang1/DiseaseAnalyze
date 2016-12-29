@@ -10,8 +10,19 @@ span.dynatree-selected a { font-style: normal; color: black; }
 .noMargin { margin-left: 0; margin-right: 0; }
 .navbar-inverse { background-color: #0a3e7a; }
 
-/* disease list
+/* disease list on search result page
 -------------------------------------------------- */
+.btn-primary { width: auto; }
+#filter-disease { margin-left: 0; margin-right: 0; position: absolute; background-color: lightgrey;
+    padding: 10px; border-radius: 3px; border: 3px white;}
+.filter-input-div { margin-right: 0; margin-left: 0; }
+.filter-input { padding: 0.2em; width: 100%; background-color: rgb(234, 246, 249); }
+#filter-submit { margin-top: 1em; float: right; }
+#filter-cancel { float: right; }
+.filter-holder { position: relative; float: right }
+.info-input { padding-left: 0; padding-right: 0; }
+.input-div { padding-left: 0; padding-right: 0; }
+
 .block-disease { margin-bottom: 2em; }
 .title-disease { font-size: 1.2em; }
 .title-disease a { color: #0000cc; }
@@ -20,3 +31,6 @@ span.dynatree-selected a { font-style: normal; color: black; }
 .description-disease { text-align: justify; }
 .others-disease b { color: green; font-size: 1.2em; }
 .others-disease i { color: grey; float: right; }
+
+/* disease page
+-------------------------------------------------- */

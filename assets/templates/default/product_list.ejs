@@ -14,6 +14,66 @@
 </script>
 <div class="row">
     <div class="col-md-8">
+        <script>
+            function showFilter(){
+                $('#filter-disease').show();
+            }
+            function hideFilter(){
+                $('#filter-disease').hide();
+            }
+            //进行疾病及基因的过滤，刷新疾病列表
+            function filterSubmit(){
+                var nameFilter = $('#filter-name').val().toUpperCase();
+                var geneFilter = $('#filter-gene').val().toUpperCase();
+                var locationFilter = $('#filter-location').val().toLowerCase();
+                var nameFilFun = nameFilter == '' ? function (name) { return true; } :
+                        function (name) { return name.indexOf(nameFilter) > -1; };
+                var genesFilFun = geneFilter == '' && locationFilter == '' ? function (genes) { return true; }
+                        : function (genes) {
+                    var geneFilFun = geneFilter == '' ? function (gene) { return true; } :
+                            function (gene) { return gene.indexOf(geneFilter) > -1; };
+                    var locationFilFun = locationFilter == '' ? function (loc) { return true; } :
+                            function (loc) { return loc.indexOf(locationFilter) > -1; };
+                    var geneFound = false;
+                    var locationFound = false;
+                    for (var i = 0;i < genes.length;i++){
+                        geneFound = geneFilFun(genes[i].gene) ? true : geneFound;
+                        locationFound = locationFilFun(genes[i].cytoband) ? true : locationFound;
+                        if (geneFound && locationFound) return true;
+                    }
+                    return false;
+                };
+                diseaseFiltered = $.grep(diseaseData, function(value){
+                    return nameFilFun(value.Name) && genesFilFun(value.Genes);
+                });
+                diseasePagination();
+                $('#filter-disease').hide();
+            }
+        </script>
+        <!--显示疾病时可选择显示精简信息或者详细信息。可以直接显示所有结果，还可进行过滤。-->
+        <div id="radio-disease" class="row" hidden>
+            <div class="col-md-7">
+                <input id="show-concise" value="concise" name="showAmount" type="radio" onchange="refreshDisease()" checked>显示精简信息
+                <input id="show-detailed" value="detailed" name="showAmount" type="radio" onchange="refreshDisease()">显示详细信息
+                <a href="javascript:void(0);" id="show-all" onclick="showAll();">显示全部</a>
+                <a href="javascript:void(0);" id="show-filter" onclick="showFilter();">结果中过滤</a>
+            </div>
+            <div class="filter-holder col-md-5">
+                <div id="filter-disease" hidden>
+                    <div class="row filter-input-div">
+                        <div class="col-md-4 info-input">疾病名称：</div>
+                        <div class="col-md-8 input-div"><input id="filter-name" class="filter-input" autocomplete="off"></div>
+                        <div class="col-md-4 info-input">基因名称：</div>
+                        <div class="col-md-8 input-div"><input id="filter-gene" class="filter-input" autocomplete="off"></div>
+                        <div class="col-md-4 info-input">基因位置：</div>
+                        <div class="col-md-8 input-div"><input id="filter-location" class="filter-input" autocomplete="off"></div>
+                    </div>
+                    <input id="filter-submit" type='button' value="过滤" class="btn btn-primary" onclick="filterSubmit()">
+                    <br/>
+                    <a id='filter-cancel' href="javascript:void(0);" onclick="hideFilter();">取消</a>
+                </div>
+            </div>
+        </div>
         <!--逐条显示疾病-->
         <div id="diseaseList">搜索结果加载中，请稍候……</div>
         <div id="pagination-disease"></div>
@@ -23,9 +83,32 @@
             <script type="text/javascript">
                 var checkedDisease = [];
                 var selectedDisease = [];
+                var searchedPhenotype = [];
+                var diseaseData;
+                var diseaseFiltered;
+                //跳转至疾病详情页
+                function gotoDisease(id){
+                    alert(searchedPhenotype);
+                    var href = '/disease/'+id;
+                    if (searchedPhenotype.length > 0){
+                        href += '?HPO=' + JSON.stringify(searchedPhenotype);
+                    }
+                    document.location.href = href;
+                }
+                //切换疾病的精简、详细
+                function refreshDisease(){
+                    if ($("input[name='showAmount']:checked").val() == 'concise'){
+                        $('.description-disease').hide();
+                        $('.gene-disease').hide();
+                        $('.others-disease').hide();
+                    } else {
+                        $('.description-disease').show();
+                        $('.gene-disease').show();
+                        $('.others-disease').show();
+                    }
+                }
                 //更新症状列表
                 function refreshTable(){
-                    alert(selectedDisease);
                     $.ajax(
                             {
                                 type : 'GET',
@@ -57,6 +140,7 @@
                                     $pagination.pagination({
                                         dataSource: raw,//数据源，此处为数组
                                         pageSize: 5,//每页显示的数量
+                                        hideWhenLessThanOnePage: true, //少于一页时隐藏分页
                                         //pageRange: 9, 在本页页码单侧最多显示的页数
                                         callback: function(data, pagination) {
                                             var html = '';
@@ -79,6 +163,7 @@
                             }
                     );
                 }
+                //根据勾选的疾病，更新症状列表的内容
                 function addDisease(checkBox, ID, index){
                     if (checkBox.checked){//选中某疾病
                         checkedDisease[index] = 1;//保存勾选框状态
@@ -90,17 +175,97 @@
                     //更新症状列表
                     refreshTable();
                 }
+                //根据传入的数据构造疾病列表块
+                function constructDisease(data, offset){
+                    var html = '';
+                    for (var i = 0;i < data.length;i++){
+                        //载入checkbox状态。
+                        var index = offset + i;
+                        var checked = checkedDisease[index] > 0 ?
+                                'checked' : '';
+
+                        html += '<div class="block-disease">';
+                        //标题块
+                        html += '<div class="title-disease">';
+                        html += '<input id="disease-'+data[i].ID+'" type="checkbox" ' +
+                                'onclick="addDisease(this, ' + data[i].ID + ', ' + index + ')" ' + checked + '>';
+                        html += '<a href="javascript:void(0);" onclick="gotoDisease(\''+data[i].ID+'\')">'
+                                + data[i].NO + '. ' + data[i].Name + '</a>';
+                        html += '</div>';
+                        //描述块
+                        if (data[i].Description && data[i].Description != 'NULL') {
+                            html += '<div class="description-disease">';
+                            html += data[i].Description;
+                            html += '</div>';
+                        }
+                        //基因块
+                        if (data[i].Genes && data[i].Genes.length > 0) {
+                            html += '<div class="gene-disease"><b>Gene(Cytogenetic location): </b>';
+                            for (var j = 0; j < data[i].Genes.length; j++) {
+                                html += '<a href="#">' + data[i].Genes[j].gene + '(' + data[i].Genes[j].cytoband + '); </a>';
+                            }
+                            html += '</div>';
+                        }
+                        //其他信息块(OMIM，分数)
+                        html += '<div class="others-disease"><b>OMIM:' + data[i].ID + '</b>'
+                        html += '<i>Score: ' + data[i].Score + '</i></div>';
+                        html += '</div>';
+                    }
+                    $('#diseaseList').html(html);
+                    refreshDisease();
+                    window.scrollTo(0,0);
+                }
+                function showAll(){
+                    $('#show-all').hide();
+                    $('#pagination-disease').hide();
+                    constructDisease(diseaseFiltered, 0);
+                }
+                function diseasePagination(){
+                    var $paginationDisease = $('#pagination-disease');
+                    if (diseaseFiltered.length <= 0){
+                        $paginationDisease.hide();
+                        $('#diseaseList').html('');
+                        return;
+                    }
+                    for (var i = 0;i < diseaseFiltered.length;i++){
+                        checkedDisease[i] = 0;
+                    }
+                    selectedDisease = [];
+                    refreshTable();
+
+                    $('#show-all').show();
+                    $paginationDisease.show();
+                    $paginationDisease.pagination({
+                        dataSource: diseaseFiltered,//数据源，此处为数组
+                        pageSize: 10,//每页显示的数量
+                        pageRange: 9, //在本页页码单侧最多显示的页数
+                        callback: function(data, pagination) {
+                            var offset = pagination.pageNumber * 10 - 10;
+                            constructDisease(data, offset);
+                        }
+                    });
+                }
                 $(document).ready(function() {
+                    //隐藏症状列表
                     $('#radio-phenotype').hide();
                     $('#table-phenotype').hide();
+                    //保存初始搜索关键字
                     var $searchBox = $('#sel_menu2');
+                    for (var i = 0;i < $searchBox.children().length;i++){
+                        searchedPhenotype.push([
+                                $searchBox.children()[i].value,
+                                $searchBox.children()[i].innerHTML
+                        ]);
+                    }
+
+                    //载入疾病
                     var $diseaseList = $('#diseaseList');
                     if ($searchBox.children().length === 0) {
                         $diseaseList.html('<a href="/index">没有找到结果，点击返回搜索页</a>');
                         return;
                     }
                     var data="";
-                    for (var i = 0;i < $searchBox.children().length;i++) {
+                    for (i = 0;i < $searchBox.children().length;i++) {
                         data += 'HPO=' + $searchBox.children()[i].value + '&';
                     }
                     data += 'guid=' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -114,50 +279,10 @@
                                 data : data,
                                 success : function(data)
                                 {
-                                    var raw = $.parseJSON(data);
-                                    for (var i = 0;i < raw.length;i++){
-                                        checkedDisease[i] = 0;
-                                    }
-                                    $('#pagination-disease').pagination({
-                                        dataSource: raw,//数据源，此处为数组
-                                        pageSize: 10,//每页显示的数量
-                                        showPrevious: false,//是否显示上页按钮
-                                        showNext: false,//是否显示下页按钮
-                                        pageRange: 9, //在本页页码单侧最多显示的页数
-                                        callback: function(data, pagination) {
-                                            var html = '';
-                                            for (var i = 0;i < data.length;i++){
-                                                //由于pagination.js不会保存和载入checkbox的状态，所以手动载入。
-                                                var index = pagination.pageNumber * 10 - 10 + i;
-                                                var checked = checkedDisease[index] > 0 ?
-                                                        'checked' : '';
-
-                                                html += '<div class="block-disease">';
-                                                html += '<div class="title-disease">';
-                                                html += '<input id="disease-'+data[i].ID+'" type="checkbox" ' +
-                                                        'onclick="addDisease(this, ' + data[i].ID + ', ' + index + ')" ' + checked + '>';
-                                                html += '<a href="#">' + data[i].NO + '. ' + data[i].Name + '</a>';
-                                                html += '</div>';
-                                                if (data[i].Description) {
-                                                    html += '<div class="description-disease">';
-                                                    html += data[i].Description;
-                                                    html += '</div>';
-                                                }
-                                                if (data[i].Genes) {
-                                                    html += '<div class="gene-disease"><b>Gene(Cytogenetic location): </b>';
-                                                    for (var j = 0; j < data[i].Genes.length; j++) {
-                                                        html += '<a href="#">' + data[i].Genes[j].gene + '(' + data[i].Genes[j].cytoband + '); </a>';
-                                                    }
-                                                    html += '</div>';
-                                                }
-                                                html += '<div class="others-disease"><b>OMIM:' + data[i].ID + '</b>'
-                                                html += '<i>Score: ' + data[i].Score + '</i></div>';
-                                                html += '</div>';
-                                            }
-                                            $('#diseaseList').html(html);
-                                            window.scrollTo(0,0);
-                                        }
-                                    });
+                                    $('#radio-disease').show();
+                                    diseaseData = $.parseJSON(data);
+                                    diseaseFiltered = diseaseData;
+                                    diseasePagination();
                                 },
                                 error : function()
                                 {

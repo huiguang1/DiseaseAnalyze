@@ -40,7 +40,7 @@ module.exports.routes = {
     action: 'list'
   },
 
-  '/index/:category/:id': {
+  '/disease/:id': {
     controller: 'IndexController',
     action: 'detail'
   },

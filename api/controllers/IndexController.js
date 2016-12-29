@@ -205,8 +205,21 @@ module.exports = {
      * detail page
      */
     detail: function(req, res, next) {
-        var cate = req.param("category").trim();
         var id = req.param("id").trim();
+        res.locals.diseaseID = id;
+        var hpo = req.param("HPO");
+        if (typeof(hpo)=='undefined'){
+            hpo = [];
+        }
+        if (typeof hpo == 'string'){
+            hpo = [ hpo ];
+        }
+        res.locals.searched = hpo;
+        res.locals.view = "product_detail";
+        return res.templet({});
+
+
+
 
         var categoryIds = [];
         if (cate == "search_result"){
