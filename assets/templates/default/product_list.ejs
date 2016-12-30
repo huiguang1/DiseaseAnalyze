@@ -210,7 +210,7 @@
                         if (data[i].Genes && data[i].Genes.length > 0) {
                             html += '<div class="gene-disease"><b>Gene(Cytogenetic location): </b>';
                             for (var j = 0; j < data[i].Genes.length; j++) {
-                                html += '<a target="view_window" href="http://202.121.178.141/cgi-bin/Test/mutations.pl?GENE='+data[i].Genes[j].gene+'">'
+                                html += '<a target="_blank" href="http://202.121.178.141/cgi-bin/Test/mutations.pl?GENE='+data[i].Genes[j].gene+'">'
                                         + data[i].Genes[j].gene + '(' + data[i].Genes[j].cytoband + '); </a>';
                             }
                             html += '</div>';
