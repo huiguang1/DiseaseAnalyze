@@ -71,6 +71,7 @@
                 var checkedDisease = [];
                 var selectedDisease = [];
                 var searchedPhenotype = [];
+                var longDescription = [];
                 var diseaseData;
                 var diseaseFiltered;
                 //跳转至疾病详情页
@@ -79,7 +80,7 @@
                     if (searchedPhenotype.length > 0){
                         href += '?HPO=' + JSON.stringify(searchedPhenotype);
                     }
-                    document.location.href = href;
+                    window.open(href);
                 }
                 //切换疾病的精简、详细
                 function refreshDisease(){
@@ -92,6 +93,13 @@
                         $('.gene-disease').show();
                         $('.others-disease').show();
                     }
+                }
+                //切换症状描述的精简、详细
+                function openDescription(index) {
+                    var $description = $('#description-' + index);
+                    var tmpDescription = $description.html();
+                    $description.html(longDescription[index]);
+                    longDescription[index] = tmpDescription;
                 }
                 //更新症状列表
                 function refreshTable(){
@@ -135,7 +143,17 @@
                                                 html += '<td><a href="javascript:void(0);" onclick="addSelect(\''+data[i].key+'\',\''+data[i].chname+'\')">'+
                                                         data[i].chname+'</a></td>';
                                                 if (data[i].description == 'NULL') data[i].description = '';
-                                                html += '<td>'+data[i].description+'</td>';
+                                                //当描述过长时，缩为一行，可以点击按钮展开或收起
+                                                var longestLength = 12;
+                                                if (data[i].description.length > longestLength) {
+                                                    longDescription[i] = data[i].description;
+                                                    longDescription[i] += '<a href="javascript:void(0)" onclick="openDescription('
+                                                            + i + ')">«</a>';
+                                                    data[i].description = data[i].description.substr(0, longestLength);
+                                                    data[i].description += '…<a href="javascript:void(0)" onclick="openDescription('
+                                                            + i + ')">»</a>';
+                                                }
+                                                html += '<td id="description-'+i+'">'+data[i].description+'</td>';
                                                 html += '</tr>';
                                             }
                                             $('#tableBody').html(html);
@@ -177,7 +195,11 @@
                                 'onclick="addDisease(this, ' + data[i].ID + ', ' + index + ')" ' + checked + '>';
                         html += '<a href="javascript:void(0);" onclick="gotoDisease(\''+data[i].ID+'\')">'
                                 + data[i].NO + '. ' + data[i].Name + '</a>';
-                        html += '</div>';
+                        html += '&nbsp;<i>(Score: ' + data[i].Score;
+                        if (typeof(data[i].pvalue) != 'undefined') {
+                            html += ', P-value: ' + data[i].pvalue;
+                        }
+                        html +=  ')</i></div>';
                         //描述块
                         if (data[i].Description && data[i].Description != 'NULL') {
                             html += '<div class="description-disease">';
@@ -188,13 +210,14 @@
                         if (data[i].Genes && data[i].Genes.length > 0) {
                             html += '<div class="gene-disease"><b>Gene(Cytogenetic location): </b>';
                             for (var j = 0; j < data[i].Genes.length; j++) {
-                                html += '<a href="#">' + data[i].Genes[j].gene + '(' + data[i].Genes[j].cytoband + '); </a>';
+                                html += '<a target="view_window" href="http://202.121.178.141/cgi-bin/Test/mutations.pl?GENE='+data[i].Genes[j].gene+'">'
+                                        + data[i].Genes[j].gene + '(' + data[i].Genes[j].cytoband + '); </a>';
                             }
                             html += '</div>';
                         }
                         //其他信息块(OMIM，分数)
                         html += '<div class="others-disease"><b>OMIM:' + data[i].ID + '</b>'
-                        html += '<i>Score: ' + data[i].Score + '</i></div>';
+                        html += '</div>';
                         html += '</div>';
                     }
                     $('#diseaseList').html(html);
@@ -275,7 +298,7 @@
 
                     $searchBox.select2({
                         multiple:true,
-                        placeholder:'Please enter some terms or keywords',
+                        placeholder:'请输入症状名或症状ID',
                         ajax:
                         {
                             url:"http://202.121.178.141/cgi-bin/MDPA/SearchDB.cgi",
@@ -302,6 +325,9 @@
                             return markup;
                         }, // let our custom formatter work
                         minimumInputLength: 2,
+                        formatInputTooShort: function (term, minLength){
+                            return "请输入至少2个字符以进行检索";
+                        },
                         //maximumInputLength: 40,
                         templateResult:formatRepo,
                         templateSelection:formatRepoSelection
@@ -400,8 +426,8 @@
             <table id="table-phenotype" class="table table-bordered table-striped dataTable" role="grid">
                 <thead>
                 <tr role="row">
-                    <th title="症状名" class="col-md-3">名字</th>
-                    <th title="症状的详细解释" class="col-md-9">描述</th>
+                    <th title="症状名" class="col-md-4">名字</th>
+                    <th title="症状的详细解释" class="col-md-8">描述</th>
                 </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>

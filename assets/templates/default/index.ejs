@@ -44,7 +44,7 @@
                 $(document).ready(function() {
                     $("#sel_menu2").select2({
                         multiple:true,
-                        placeholder:'Please enter some terms or keywords',
+                        placeholder:'请输入症状名或症状ID',
                         ajax:
                         {
                             url:"http://202.121.178.141/cgi-bin/MDPA/SearchDB.cgi",
@@ -71,6 +71,7 @@
                             return markup;
                         }, // let our custom formatter work
                         minimumInputLength: 2,
+                        formatInputTooShort:  "请输入至少2个字符以进行检索",
                         //maximumInputLength: 40,
                         templateResult:formatRepo,
                         templateSelection:formatRepoSelection
@@ -188,7 +189,7 @@
                                 newRow.append(newName);
                                 newRow.append(newDcrp);
                                 newRow.append(newLeaf);
-                                $table.append(newRow);
+                                $table.prepend(newRow);
                             },
                             error : function()
                             {

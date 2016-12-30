@@ -1,3 +1,6 @@
+.img-brand { height: 6em; padding: 0.5em;}
+.navbar-header label { color: white; margin-bottom: 0; font-size: 1.5em; padding: 0.5em; }
+
 .search-div { padding-left: 0; padding-right: 0; }
 .search-area { position: relative; margin-left: 0; margin-right: 0;}
 .search-btn { height: 100%; position: absolute; }
@@ -9,6 +12,7 @@ span.dynatree-selected a { font-style: normal; color: black; }
 .sticky-right {position: fixed; top: 100px; padding-left: 0; padding-right: 0; }
 .noMargin { margin-left: 0; margin-right: 0; }
 .navbar-inverse { background-color: #0a3e7a; }
+
 
 /* disease list on search result page
 -------------------------------------------------- */
@@ -37,3 +41,5 @@ span.dynatree-selected a { font-style: normal; color: black; }
 
 .detail-title { color: red; font-size: 2em; }
 .detail-description { text-align: justify; }
+
+.badge-phenotype { font-size: 1em; }

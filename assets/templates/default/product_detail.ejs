@@ -64,7 +64,7 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" id="my-brand" href="#">
-                <p>疾病 OMIM:<%-diseaseID%></p>
+                <p id="mydoc-title">疾病 OMIM:<%-diseaseID%></p>
             </a>
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -123,8 +123,8 @@
                         var $table = $('#tableBody');
                         for (var i = 0;i < relation.length;i++){
                             var html = '<tr role="row" class="color-palette">';
-                            html += '<td>'+ relation[i].target+'</td>';
                             html += '<td>'+ relation[i].source+'</td>';
+                            html += '<td>'+ relation[i].target+'</td>';
                             html += '<td>'+ (relation[i].similarity * 100).toFixed(2) + '%</td>';
                             html += '</tr>';
                             var $newRow = $(html);
@@ -133,14 +133,18 @@
                         $('#table-phenotype').show();
                         //列出未匹配的症状
                         $('#table-tip').html('该疾病的其他症状：');
-                        $('#symptoms-other').html(remain);
+                        var remainHtml = '';
+                        for (i = 0;i < remain.length;i++){
+                            remainHtml += '<span class="badge badge-phenotype">'+remain[i].phenotype+'</span>&nbsp;';
+                        }
+                        $('#symptoms-other').html(remainHtml);
                     }
                 </script>
                 <table id="table-phenotype" class="table table-bordered table-striped dataTable" role="grid" hidden>
                     <thead>
                     <tr role="row">
-                        <th title="本疾病的症状" class="col-md-4">疾病症状</th>
                         <th title="您搜索的症状" class="col-md-4">搜索症状</th>
+                        <th title="本疾病的症状" class="col-md-4">疾病症状</th>
                         <th title="疾病症状与搜索症状之间的相似度" class="col-md-4">相似度</th>
                     </tr>
                     </thead>
@@ -154,6 +158,8 @@
             <!--病例信息-->
             <script>
                 function buildDetail(name, description, genes) {
+                    var $docTitle = $('#mydoc-title');
+                    $docTitle.html($docTitle.html() + '  ' + name);
                     var $title = $('<div class="detail-title">'+name+'</div>');
                     var $description = $('<div class="detail-description">'+description+'</div>');
                     var $genes = $('<div class="detail-genes"></div>');
