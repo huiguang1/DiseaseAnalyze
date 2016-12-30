@@ -209,10 +209,7 @@ module.exports = {
         res.locals.diseaseID = id;
         var hpo = req.param("HPO");
         if (typeof(hpo)=='undefined'){
-            hpo = [];
-        }
-        if (typeof hpo == 'string'){
-            hpo = [ hpo ];
+            hpo = '[]';
         }
         res.locals.searched = hpo;
         res.locals.view = "product_detail";

@@ -76,65 +76,106 @@
 </nav>
 <div class="container">
     <div class="home-page main">
+        <script>
+            //取URL参数的辅助函数
+            function getUrlParam(name) {
+                var reg = new RegExp("(^|&)" + name + "=([^&]*)", "g"); //构造一个含有目标参数的正则表达式对象
+                var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+                r[0] = decodeURIComponent(r[0]);
+                for (var i = 1;i< r.length;i++){
+                    r[i] = r[i].substr(1);//去除&
+                    r[i] = decodeURIComponent(r[i]);//URI解码（16进制序列转为实际字符）
+                }
+                return r;
+            }
+
+            $(document).ready(function() {
+                var params = '?';
+                var hpo = $.parseJSON('<%-searched%>');
+                for (var i = 0;i < hpo.length;i++){
+                    params += 'HPO=' + hpo[i] + '&';
+                }
+                params += 'disID=' + '<%-diseaseID%>';
+                //获取疾病数据以及症状联系
+                $.ajax(
+                        {
+                            type : 'GET',
+                            url : 'http://202.121.178.141/cgi-bin/MDPA/DiseaseInfo.cgi' + params,
+                            success : function(data)
+                            {
+                                var raw = $.parseJSON(data);
+                                buildRelation(raw.Relations, raw.Remains);
+                                buildDetail(raw.Name, raw.Description, raw.Genes);
+                            },
+                            error : function()
+                            {
+                                //$diseaseList.html('<a href="/index">网络连接异常，点击返回搜索页</a>');
+                            }
+                        });
+
+            })
+        </script>
         <div class="row row-disease">
             <div class="col-md-6">
                 <script>
-                    $(document).ready(function() {
-                        var params = '?';
-                        params +=
-                        $.ajax(
-                                {
-                                    type : 'GET',
-                                    url : 'http://202.121.178.141/cgi-bin/MDPA/GPSEngine.cgi',
-                                    data : data,
-                                    success : function(data)
-                                    {
-                                        $('#radio-disease').show();
-                                        diseaseData = $.parseJSON(data);
-                                        diseaseFiltered = diseaseData;
-                                        diseasePagination();
-                                    },
-                                    error : function()
-                                    {
-                                        $diseaseList.html('<a href="/index">网络连接异常，点击返回搜索页</a>');
-                                    }
-                                });
-
-                    })
+                    //构造症状关系表
+                    function buildRelation(relation, remain){
+                        var $table = $('#tableBody');
+                        for (var i = 0;i < relation.length;i++){
+                            var html = '<tr role="row" class="color-palette">';
+                            html += '<td>'+ relation[i].target+'</td>';
+                            html += '<td>'+ relation[i].source+'</td>';
+                            html += '<td>'+ (relation[i].similarity * 100).toFixed(2) + '%</td>';
+                            html += '</tr>';
+                            var $newRow = $(html);
+                            $table.append($newRow);
+                        }
+                        $('#table-phenotype').show();
+                        //列出未匹配的症状
+                        $('#table-tip').html('该疾病的其他症状：');
+                        $('#symptoms-other').html(remain);
+                    }
                 </script>
-                <table id="table-phenotype" class="table table-bordered table-striped dataTable" role="grid">
+                <table id="table-phenotype" class="table table-bordered table-striped dataTable" role="grid" hidden>
                     <thead>
                     <tr role="row">
                         <th title="本疾病的症状" class="col-md-4">疾病症状</th>
-                        <th title="该行左侧与右侧症状的关系" class="col-md-4">关系</th>
                         <th title="您搜索的症状" class="col-md-4">搜索症状</th>
+                        <th title="疾病症状与搜索症状之间的相似度" class="col-md-4">相似度</th>
                     </tr>
                     </thead>
-                    <tbody id="tableBody">
-                    <tr>
-                        <th>1</th>
-                        <th>1</th>
-                        <th>1</th>
-                    </tr>
-                    <tr>
-                        <th>1</th>
-                        <th>1</th>
-                        <th>1</th>
-                    </tr>
-                    <tr>
-                        <th>1</th>
-                        <th>1</th>
-                        <th>1</th>
-                    </tr>
-                    </tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
+                <label id="table-tip">疾病信息加载中，请稍候……</label>
+                <div id="symptoms-other">
+                </div>
             </div>
-            <div class="col-md-6">
-                疾病信息
+
+            <!--病例信息-->
+            <script>
+                function buildDetail(name, description, genes) {
+                    var $title = $('<div class="detail-title">'+name+'</div>');
+                    var $description = $('<div class="detail-description">'+description+'</div>');
+                    var $genes = $('<div class="detail-genes"></div>');
+                    if (genes.length > 0) {
+                        var geneHTML = '<b>Gene(cytoband): </b>';
+                        for (var i = 0; i < genes.length; i++) {
+                            geneHTML += '<a href="javascript:void(0);">' + genes[i].gene + '(' + genes[i].cytoband + ');</a>&nbsp;';
+                        }
+                        $genes.html(geneHTML);
+                    }
+                    var $block = $('#description-block');
+                    $block.append($title);
+                    $block.append($description);
+                    $block.append($genes);
+                }
+            </script>
+            <div id="description-block" class="col-md-6">
+
             </div>
         </div>
         <div class="row">
-            病例信息
+            <!--病例信息-->
         </div>
 
 

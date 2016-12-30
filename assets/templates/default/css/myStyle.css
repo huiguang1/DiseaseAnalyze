@@ -34,3 +34,6 @@ span.dynatree-selected a { font-style: normal; color: black; }
 
 /* disease page
 -------------------------------------------------- */
+
+.detail-title { color: red; font-size: 2em; }
+.detail-description { text-align: justify; }

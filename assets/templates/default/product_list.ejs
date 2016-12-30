@@ -1,17 +1,4 @@
 <% include ./header.ejs %>
-<script type="text/javascript">
-    //取URL参数的辅助函数
-    function getUrlParam(name) {
-        var reg = new RegExp("(^|&)" + name + "=([^&]*)", "g"); //构造一个含有目标参数的正则表达式对象
-        var r = window.location.search.substr(1).match(reg);  //匹配目标参数
-        r[0] = decodeURIComponent(r[0]);
-        for (var i = 1;i< r.length;i++){
-            r[i] = r[i].substr(1);//去除&
-            r[i] = decodeURIComponent(r[i]);//URI解码（16进制序列转为实际字符）
-        }
-        return r;
-    }
-</script>
 <div class="row">
     <div class="col-md-8">
         <script>
@@ -88,7 +75,6 @@
                 var diseaseFiltered;
                 //跳转至疾病详情页
                 function gotoDisease(id){
-                    alert(searchedPhenotype);
                     var href = '/disease/'+id;
                     if (searchedPhenotype.length > 0){
                         href += '?HPO=' + JSON.stringify(searchedPhenotype);
@@ -252,10 +238,7 @@
                     //保存初始搜索关键字
                     var $searchBox = $('#sel_menu2');
                     for (var i = 0;i < $searchBox.children().length;i++){
-                        searchedPhenotype.push([
-                                $searchBox.children()[i].value,
-                                $searchBox.children()[i].innerHTML
-                        ]);
+                        searchedPhenotype.push($searchBox.children()[i].value);
                     }
 
                     //载入疾病
