@@ -158,15 +158,13 @@
             <!--病例信息-->
             <script>
                 function buildDetail(name, description, genes) {
-                    var $docTitle = $('#mydoc-title');
-                    $docTitle.html($docTitle.html() + '  ' + name);
                     var $title = $('<div class="detail-title">'+name+'</div>');
                     var $description = $('<div class="detail-description">'+description+'</div>');
                     var $genes = $('<div class="detail-genes"></div>');
                     if (genes.length > 0) {
                         var geneHTML = '<b>Gene(cytoband): </b>';
                         for (var i = 0; i < genes.length; i++) {
-                            geneHTML += '<a href="javascript:void(0);">' + genes[i].gene + '(' + genes[i].cytoband + ');</a>&nbsp;';
+                            geneHTML += '<a target="_blank" href="http://202.121.178.141/cgi-bin/Test/mutations.pl?GENE='+genes[i].gene+'">' + genes[i].gene + '(' + genes[i].cytoband + '); </a>';
                         }
                         $genes.html(geneHTML);
                     }
