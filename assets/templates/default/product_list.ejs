@@ -216,7 +216,8 @@
                             html += '</div>';
                         }
                         //其他信息块(OMIM，分数)
-                        html += '<div class="others-disease"><b>OMIM:' + data[i].ID + '</b>'
+                        html += '<div class="others-disease"><a target="_blank"' +
+                                'href="https://omim.org/entry/'+data[i].ID+'"><b>OMIM:' + data[i].ID + '</b></a>'
                         html += '</div>';
                         html += '</div>';
                     }
