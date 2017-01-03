@@ -319,6 +319,15 @@ module.exports = {
         }
     },
 
+    /**
+     * 基因详情页
+     */
+    gene: function(req, res, next) {
+        res.locals.geneID = req.param("id").trim();
+        res.locals.view = "gene_detail";
+        return res.templet({});
+    },
+
 
     /**
      * 详情页 

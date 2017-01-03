@@ -56,26 +56,23 @@
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container-fluid">
             <!-- Brand and toggle get grouped for better mobile display -->
-            <a href="http://transmed.sjtu.edu.cn/yale.html">
-                <div class="navbar-header col-md-10">
-                    <img class="img-brand col-md-2" alt="Brand" src="<%=static_dir%>/img/logo.png"/>
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <img class="img-brand col-md-1" alt="Brand" src="<%=static_dir%>/img/logo-sjtu.png"/>
-                    <img class="img-brand col-md-1" alt="Brand" src="<%=static_dir%>/img/logo-yale.png"/>
-                    <label class="col-md-7">
-                        上海交大-耶鲁大学生物统计学联合研究中心<br/>
-                        SJTU-YALE Joint Center for Biostatistics
-                    </label>
-                    <!--a class="navbar-brand col-md-2" id="my-brand" href="/index">
-                        <p>GPS搜索</p>
-                    </a-->
-                </div>
-            </a>
+            <div class="navbar-header col-md-10">
+                <a href="/index" class="col-md-2">
+                    <img class="img-brand" alt="Brand" src="<%=static_dir%>/img/logo.png"/>
+                </a>
+                <a href="http://transmed.sjtu.edu.cn/yale.html" class="col-md-1">
+                    <img class="img-brand" alt="Brand" src="<%=static_dir%>/img/logo-sjtu.png"/>
+                </a>
+                <a href="http://transmed.sjtu.edu.cn/yale.html" class="col-md-1">
+                    <img class="img-brand" alt="Brand" src="<%=static_dir%>/img/logo-yale.png"/>
+                </a>
+                <a href="http://www.shchildren.com.cn" class="col-md-3">
+                    <img class="img-brand" alt="Brand" src="<%=static_dir%>/img/logo-sch.png"/>
+                </a>
+                <!--a class="navbar-brand col-md-2" id="my-brand" href="/index">
+                    <p>GPS搜索</p>
+                </a-->
+            </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">

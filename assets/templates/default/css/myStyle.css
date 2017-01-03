@@ -1,6 +1,9 @@
-.img-brand { height: 6em; padding: 0.5em;}
-.navbar-header label { color: white; margin-bottom: 0; font-size: 1.5em; padding: 0.5em; }
+.img-brand { height: 6vw; padding: 0.5em; width: 100%; }
+.navbar-header label { color: white; margin-bottom: 0; font-size: 1.5em; padding: 1vw; }
+.navbar-header a { padding: 0; }
+.navbar-header #my-brand { padding: 15px; }
 .nav > li > a { padding-right: 5px; padding-left: 5px; }
+.container { margin-top: 6vw; }
 
 .search-div { padding-left: 0; padding-right: 0; }
 .search-area { position: relative; margin-left: 0; margin-right: 0;}
@@ -10,7 +13,7 @@
 .dataTable tbody tr { background-color: white; }
 body { background-color: rgb(234, 246, 249); }
 span.dynatree-selected a { font-style: normal; color: black; }
-.sticky-right {position: fixed; top: 100px; padding-left: 0; padding-right: 0; }
+.sticky-right {position: fixed; top: 8vw; padding-left: 0; padding-right: 0; }
 .noMargin { margin-left: 0; margin-right: 0; }
 .navbar-inverse { background-color: #0a3e7a; }
 
@@ -44,3 +47,7 @@ span.dynatree-selected a { font-style: normal; color: black; }
 .detail-description { text-align: justify; }
 
 .badge-phenotype { font-size: 1em; }
+
+/* gene page
+-------------------------------------------------- */
+#detail-gene { margin: 0; }

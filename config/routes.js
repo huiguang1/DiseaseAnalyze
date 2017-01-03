@@ -45,6 +45,11 @@ module.exports.routes = {
     action: 'detail'
   },
 
+  '/gene/:id': {
+    controller: 'IndexController',
+    action: 'gene'
+  },
+
   '/searchResult': {
     controller: 'IndexController',
     action: 'search'
