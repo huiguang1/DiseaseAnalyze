@@ -18,6 +18,7 @@
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 
 
+    <link rel="stylesheet" href="<%=static_dir%>/js/cytoscape/network.css"/>
     <link rel="stylesheet" href="<%=static_dir%>/bootstrap-3.3.5-dist/css/bootstrap.css"/>
     <script
             src="https://code.jquery.com/jquery-1.12.4.js"
@@ -49,11 +50,11 @@
     <script src="<%=static_dir%>/http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 
-    <script src="<%=static_dir%>/js/sytoscape/cola.v3.min.js"></script>
-    <script src="<%=static_dir%>/js/sytoscape/cytoscape.min.js"></script>
-    <script src="<%=static_dir%>/js/sytoscape/jquery.qtip.min.js"></script>
-    <script src="<%=static_dir%>/js/sytoscape/cytoscape-qtip.js"></script>
-    <script src="<%=static_dir%>/js/sytoscape/cytoscape-cola.js"></script>
+    <script src="<%=static_dir%>/js/cytoscape/cola.v3.min.js"></script>
+    <script src="<%=static_dir%>/js/cytoscape/cytoscape.min.js"></script>
+    <script src="<%=static_dir%>/js/cytoscape/jquery.qtip.min.js"></script>
+    <script src="<%=static_dir%>/js/cytoscape/cytoscape-qtip.js"></script>
+    <script src="<%=static_dir%>/js/cytoscape/cytoscape-cola.js"></script>
 </head>
 
 <body>
@@ -124,14 +125,17 @@
         <div class="row row-disease">
             <div class="col-md-6">
                 <script>
+                    var matchedPheno = [];
+                    var cy;
                     //构造症状关系表
                     function buildRelation(relation, remain){
                         var $table = $('#tableBody');
                         for (var i = 0;i < relation.length;i++){
+                            matchedPheno[i] = [ relation[i].TID, relation[i].SID ];
                             var html = '<tr role="row" class="color-palette">';
                             html += '<td>'+ relation[i].source+'</td>';
                             html += '<td>'+ relation[i].target+'</td>';
-                            html += '<td>'+ (relation[i].similarity * 100).toFixed(2) + '%</td>';
+                            html += '<td><a href="javascript:void(0);" onclick="buildNetwork('+i+')">'+ (relation[i].similarity * 100).toFixed(2) + '%</a></td>';
                             html += '</tr>';
                             var $newRow = $(html);
                             $table.append($newRow);
@@ -159,8 +163,67 @@
                 <label id="table-tip">疾病信息加载中，请稍候……</label>
                 <div id="symptoms-other">
                 </div>
-            </div>
+                <!--测试网络图片-->
+                <script>
+                    function buildNetwork(index){
+                        var params = '?HPO=' + matchedPheno[index][0];
+                        params += '&HPO=' + matchedPheno[index][1];
+                        $.ajax({
+                            url : "http://202.121.178.141/cgi-bin/MDPA/Network.cgi" + params,
+                            type: 'GET',
+                            dataType: 'text',
+                            async:false,
+                            success: function( msg ) {
+                                $('#network-data').html( msg );
+                                buildCY();
+                                /*cy = cytoscape({
+                                    container: $('#cy'),
+                                    elements: $.parseJSON(msg),
 
+                                    style: [ // the stylesheet for the graph
+                                        {
+                                            selector: 'node',
+                                            style: {
+                                                'background-color': '#666',
+                                                'label': 'data(id)'
+                                            }
+                                        },
+
+                                        {
+                                            selector: 'edge',
+                                            style: {
+                                                'width': 3,
+                                                'line-color': '#ccc',
+                                                'target-arrow-color': '#ccc',
+                                                'target-arrow-shape': 'triangle'
+                                            }
+                                        }
+                                    ],
+                                    layout: {
+                                        name: 'grid',
+                                        rows: 1
+                                    }
+
+                                });*/
+                            },
+                            error: function() {
+                                alert("网络连接异常");
+                            }
+                        })
+                    }
+                </script>
+
+
+                <DIV id="cy">cytoscape</DIV>
+                <DIV id="network-data" style="display: none;"></DIV>
+                <DIV id="network-image-form">
+                    <FORM id="networkImageForm" action="http://thebiogrid.org/scripts/downloadNetworkImage.php"
+                          method="POST"><INPUT name="networkImage" id="networkImage" type="hidden">
+                    </FORM>
+                </DIV>
+
+
+            </div>
             <!--病例信息-->
             <script>
                 function buildDetail(name, description, genes) {
@@ -195,5 +258,9 @@
 
 
 
-
+        <script src="<%=static_dir%>/js/cytoscape/arbor.js"></script>
+        <script src="<%=static_dir%>/js/cytoscape/cytoscape-arbor.js"></script>
+        <script src="<%=static_dir%>/js/cytoscape/cxtmenu.js"></script>
+        <script src="<%=static_dir%>/js/cytoscape/panzoom.js"></script>
+        <script src="<%=static_dir%>/js/cytoscape/network-onload-2.js"></script>
 <% include ./footer.ejs %>
