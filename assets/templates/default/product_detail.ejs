@@ -224,7 +224,7 @@
                     if (genes.length > 0) {
                         var geneHTML = '<b>Gene(cytoband): </b>';
                         for (var i = 0; i < genes.length; i++) {
-                            geneHTML += '<a target="_blank" href="http://202.121.178.141/cgi-bin/Test/mutations.pl?GENE='+genes[i].gene+'">' + genes[i].gene + '(' + genes[i].cytoband + '); </a>';
+                            geneHTML += '<a target="_blank" href="/gene/'+genes[i].gene+'">' + genes[i].gene + '(' + genes[i].cytoband + '); </a>';
                         }
                         $genes.html(geneHTML);
                     }

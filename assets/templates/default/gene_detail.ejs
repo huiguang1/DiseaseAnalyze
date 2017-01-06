@@ -89,6 +89,10 @@
                                 success : function(data)
                                 {
                                     var raw = $.parseJSON(data);
+                                    if (typeof raw == 'undefined' || raw.length < 1) {
+                                        $('#detail-gene').html('找不到该基因');
+                                        return;
+                                    }
                                     var html = '';
                                     html += 'GDBID: ' + raw[0].GDBID + '<br/>';
                                     html += 'EntrezID: ' + raw[0].EntrezID + '<br/>';
