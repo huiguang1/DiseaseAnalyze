@@ -14,13 +14,14 @@ function buildCY( ) {
 		container : document.getElementById('cy'),
 		style: cytoscape.stylesheet( )
 			.selector('node').css({
-				'content': '',
 				'background-color' : '#16a',
 				'text-valign': 'center',
 				'color': '#FFF',
 				'text-outline-width': 3,
 				'text-outline-color': '#16a',
 				'font-family' : 'helvetica',
+                'content': 'data(tag)',
+                'text-halign': 'right'
 			})
 			.selector("node[label='OMIM']").css({
 				'background-color' : '#7b3b3b',
@@ -197,11 +198,11 @@ function buildCY( ) {
 					},
 					content : {
 						text : name,
-						title : '<a href="http://compbio.charite.de/hpoweb/showterm?id=' + g + '" target="_blank">' + g + '</a>  <button type="button" onClick= addTerm("'+g+'")>add</button>'
+						title : '<a href="http://compbio.charite.de/hpoweb/showterm?id=' + g + '" target="_blank">' + g + '</a>'
 					},
 					position : {
 						my : 'bottom left',
-						at : 'bottom left'
+						at : 'center'
 					},
 					style : {
 						classes : 'qtip-bootstrap',
@@ -318,7 +319,6 @@ function buildCY( ) {
 		} 
 		
 	}*/
-    alert(-2);
 	// Initialize menu items that launch
 	// on events
 	initializeNetworkExports( cy );
@@ -326,7 +326,6 @@ function buildCY( ) {
 	initializeNetworkZoom( cy );
 	initializeNetworkDialogs( cy );
 	//initializeEvidenceSelect( cy );
-    alert(-1);
 
 	initializeNetworkLayouts( cy, layouts );
 	
@@ -336,7 +335,6 @@ function buildCY( ) {
 
 	// Setup the Panzoom Tool
 	setupPanzoom( cy );
-	alert(0);
 }
 
 function initializeNetworkLayouts( graph, layouts ) {

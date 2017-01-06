@@ -47,7 +47,9 @@ span.dynatree-selected a { font-style: normal; color: black; }
 .detail-description { text-align: justify; }
 
 .badge-phenotype { font-size: 1em; }
-#cy { position: absolute; width: 800px; height: 800px; }
+#picDialog { width: 63vw; height: 63vh; }
+#cy { width: 60vw; height: 60vh; }
+
 
 /* gene page
 -------------------------------------------------- */
