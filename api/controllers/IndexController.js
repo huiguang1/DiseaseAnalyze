@@ -20,6 +20,7 @@ module.exports = {
      */
     index: function(req, res, next) {
         res.locals.view = "index";
+
         return res.templet({});
     },
 

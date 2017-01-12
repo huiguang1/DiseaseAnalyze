@@ -40,6 +40,8 @@ span.dynatree-selected a { font-style: normal; color: black; }
 .others-disease b { color: green; font-size: 1.2em; }
 .others-disease i { color: grey; float: right; }
 
+.block-color { height: 2em; width: 3em; background: rgb(0,255,0); cursor:pointer;}
+
 /* disease page
 -------------------------------------------------- */
 

@@ -1,4 +1,63 @@
 <% include ./header.ejs %>
+
+<!--cytoscape要引入的文件-->
+<link rel="stylesheet" href="<%=static_dir%>/js/cytoscape/biogrid_jquery.qtip.css"/>
+<link rel="stylesheet" href="<%=static_dir%>/js/cytoscape/jquery.qtip.min.css"/>
+<link rel="stylesheet" href="<%=static_dir%>/js/cytoscape/network.css"/>
+<script src="<%=static_dir%>/js/cytoscape/cola.v3.min.js"></script>
+<script src="<%=static_dir%>/js/cytoscape/cytoscape.min.js"></script>
+<script src="<%=static_dir%>/js/cytoscape/jquery.qtip.min.js"></script>
+<script src="<%=static_dir%>/js/cytoscape/cytoscape-qtip.js"></script>
+<script src="<%=static_dir%>/js/cytoscape/cytoscape-cola.js"></script>
+<script src="<%=static_dir%>/js/cytoscape/arbor.js"></script>
+<script src="<%=static_dir%>/js/cytoscape/cytoscape-arbor.js"></script>
+<script src="<%=static_dir%>/js/cytoscape/cxtmenu.js"></script>
+<script src="<%=static_dir%>/js/cytoscape/panzoom.js"></script>
+<script src="<%=static_dir%>/js/cytoscape/network-onload-2.js"></script>
+
+<DIV id="network-data" style="display: none;"></DIV>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" id="picDialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    症状关系图
+                </h4>
+            </div>
+            <div class="modal-body">
+                <DIV id="cy"></DIV>
+                <DIV id="network-image-form">
+                    <FORM id="networkImageForm" action="http://thebiogrid.org/scripts/downloadNetworkImage.php"
+                          method="POST"><INPUT name="networkImage" id="networkImage" type="hidden">
+                    </FORM>
+                </DIV>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<script>
+    <!--获取网络图片所需数据并显示弹窗-->
+    function buildNetwork(source, target){
+        var params = '?HPO=' + source;
+        params += '&HPO=' + target;
+        $.ajax({
+            url : "http://202.121.178.141/cgi-bin/MDPA/Network.cgi" + params,
+            type: 'GET',
+            dataType: 'text',
+            success: function( msg ) {
+                $('#network-data').html( msg );
+                $('#myModal').modal('show');
+            },
+            error: function() {
+                alert("网络连接异常");
+            }
+        })
+    }
+</script>
+
 <div class="row">
     <div class="col-md-8">
         <script>
@@ -188,7 +247,7 @@
                         var checked = checkedDisease[index] > 0 ?
                                 'checked' : '';
 
-                        html += '<div class="block-disease">';
+                        html += '<div class="block-disease" id="block-disease-'+data[i].ID+'">';
                         //标题块
                         html += '<div class="title-disease">';
                         html += '<input id="disease-'+data[i].ID+'" type="checkbox" ' +
@@ -200,6 +259,37 @@
                             html += ', P-value: ' + data[i].pvalue;
                         }
                         html +=  ')</i></div>';
+                        //症状关联热度图
+                        html += '<div class="heat-disease row noMargin"></div>';
+                        var params = '';
+                        for (var j = 0;j < searchedPhenotype.length;j++) {
+                            params += 'HPO=' + searchedPhenotype[j] + '&';
+                        }
+                        params += 'disID=' + data[i].ID;
+                        $.ajax(
+                            {
+                                type : 'GET',
+                                url : 'http://202.121.178.141/cgi-bin/MDPA/InputScore.cgi',
+                                data : params,
+                                success : function(data)
+                                {
+                                    var parsed = $.parseJSON(data);
+                                    var raw = parsed.Relations;
+                                    var colorBlocks = '';
+                                    for (var k = 0;k < raw.length;k++) {
+                                        var green = parseInt(127+128 * (1-raw[k].similarity));
+                                        var blue = parseInt(127+128 * raw[k].similarity);
+                                        colorBlocks += '<div class="block-color col-md-1" style="background: rgb(127,'+green+','+
+                                            blue+');" title="'+raw[k].source+'->'+raw[k].target+'" ' +
+                                            'onclick="buildNetwork(\''+raw[k].SID+'\',\''+raw[k].TID+'\');"></div>';
+                                    }
+                                    $('#block-disease-'+parsed.ID).children('.heat-disease').html(colorBlocks);
+                                },
+                                error : function()
+                                {
+                                    alert('网络连接异常');
+                                }
+                            });
                         //描述块
                         if (data[i].Description && data[i].Description != 'NULL') {
                             html += '<div class="description-disease">';
@@ -209,7 +299,7 @@
                         //基因块
                         if (data[i].Genes && data[i].Genes.length > 0) {
                             html += '<div class="gene-disease"><b>Gene(Cytogenetic location): </b>';
-                            for (var j = 0; j < data[i].Genes.length; j++) {
+                            for (j = 0; j < data[i].Genes.length; j++) {
                                 html += '<a target="_blank" href="/gene/'+data[i].Genes[j].gene+'">'
                                         + data[i].Genes[j].gene + '(' + data[i].Genes[j].cytoband + '); </a>';
                             }
@@ -256,6 +346,10 @@
                     });
                 }
                 $(document).ready(function() {
+                    //弹出的对话框用于显示症状关系网络图
+                    $('#myModal').on('shown.bs.modal', buildCY).on('hide.bs.modal', function(){
+                        $('.qtip-pos-bl').remove();
+                    });
                     //隐藏症状列表
                     $('#radio-phenotype').hide();
                     $('#table-phenotype').hide();

@@ -85,9 +85,6 @@
 </nav>
 
 <DIV id="network-data" style="display: none;"></DIV>
-<script>
-
-</script>
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog" id="picDialog">
         <div class="modal-content">
@@ -195,8 +192,8 @@
                 <label id="table-tip">疾病信息加载中，请稍候……</label>
                 <div id="symptoms-other">
                 </div>
-                <!--测试网络图片-->
                 <script>
+                    <!--获取网络图片所需数据并显示弹窗-->
                     function buildNetwork(index){
                         var params = '?HPO=' + matchedPheno[index][0];
                         params += '&HPO=' + matchedPheno[index][1];
