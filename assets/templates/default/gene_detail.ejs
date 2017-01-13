@@ -64,12 +64,12 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" id="my-brand" href="#">
-                <p id="mydoc-title">基因 <%-geneID%></p>
+                <p id="mydoc-title"><% if (lan == 'eng') { %>Gene<% } else { %>基因<% } %> <%-geneID%></p>
             </a>
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav navbar-right">
-                <li><a href="/index">返回首页</a></li>
+                <li><a href="/index"><% if (lan == 'eng') { %>Home page<% } else { %>返回首页<% } %></a></li>
             </ul>
         </div>
     </div><!-- /.container-fluid -->
@@ -78,7 +78,7 @@
     <div class="home-page main">
         <div class="row">
             <script>
-
+                var eng = '<%-lan%>' == 'eng' ? 1 : 0;
                 $(document).ready(function() {
                     var gene = '<%-geneID%>';
                     //获取疾病数据以及症状联系
@@ -90,7 +90,7 @@
                                 {
                                     var raw = $.parseJSON(data);
                                     if (typeof raw == 'undefined' || raw.length < 1) {
-                                        $('#detail-gene').html('找不到该基因');
+                                        $('#detail-gene').html(eng == 1 ? 'Gene not found' : '找不到该基因');
                                         return;
                                     }
                                     var html = '';
@@ -120,14 +120,16 @@
                                 },
                                 error : function()
                                 {
-                                    $('#detail-gene').html('<a href="/index">网络连接异常，点击返回搜索页</a>');
+                                    $('#detail-gene').html('<a href="/index">' +
+                                        (eng == 1 ? 'Error, click to jump to home page' : '网络连接异常，点击返回搜索页') +
+                                        '</a>');
                                 }
                             });
 
                 })
             </script>
             <div id="detail-gene" class="row">
-                正在获取基因数据，请稍候……
+                <% if (lan == 'eng') { %>Loading gene data, please wait...<% } else { %>正在获取基因数据，请稍候……<% } %>
             </div>
             <table id="table-gene" class="table table-bordered table-striped dataTable" role="grid" hidden>
                 <thead>

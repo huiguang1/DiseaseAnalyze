@@ -51,6 +51,9 @@
 </head>
 
 <body>
+<script>
+    var eng = '<%-lan%>' == 'eng' ? 1 : 0;
+</script>
     <!-- Prompt IE 7 users to install Chrome Frame -->
     <!--[if lt IE 8]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
     <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -75,10 +78,21 @@
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right col-md-2">
+
+                    <li><a href="http://202.121.178.141/MDPA/index.html">
+                            <div><% if (lan == 'eng') { %>Old version<% } else { %>回到旧版<% } %></div>
+                        </a></li>
+                    <li><a href="javascript:void(0);" onclick="setFavor('Genotype Phenotype Search', window.location.host);">
+                            <div><% if (lan == 'eng') { %>Add to favourite<% } else { %>加入收藏<% } %></div>
+                        </a></li>
+                    <li><a href="http://transmed.sjtu.edu.cn/yale.html">
+                            <div><% if (lan == 'eng') { %>Contact us<% } else { %>联系我们<% } %></div>
+                        </a></li>
+                </ul>
                 <ul class="nav navbar-nav navbar-right">
-                    <li><a href="http://202.121.178.141/MDPA/index.html">回到旧版</a></li>
-                    <li><a href="javascript:void(0);" onclick="setFavor('Genotype Phenotype Search', window.location.host);">加入收藏</a></li>
-                    <li><a href="http://transmed.sjtu.edu.cn/yale.html">联系我们</a></li>
+                    <li><% if (lan == 'eng') { %><a class="lan-switch" href="/index?lan=chs">切换至中文版</a>
+                        <% } else { %><a class="lan-switch" href="/index?lan=eng">English version<% } %></a></li>
                 </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->

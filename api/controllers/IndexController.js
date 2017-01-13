@@ -20,6 +20,9 @@ module.exports = {
      */
     index: function(req, res, next) {
         res.locals.view = "index";
+        var lan = req.param('lan');
+        req.session.lan = lan;
+        res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
 
         return res.templet({});
     },
@@ -39,6 +42,8 @@ module.exports = {
             var idnName = hpo[i].split('$');
             res.locals.searched[i] = idnName;
         }
+
+        res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
         return res.templet({});
 
         var hpo = req.param("HPO");
@@ -214,6 +219,8 @@ module.exports = {
         }
         res.locals.searched = hpo;
         res.locals.view = "product_detail";
+
+        res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
         return res.templet({});
 
 
@@ -326,6 +333,8 @@ module.exports = {
     gene: function(req, res, next) {
         res.locals.geneID = req.param("id").trim();
         res.locals.view = "gene_detail";
+
+        res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
         return res.templet({});
     },
 

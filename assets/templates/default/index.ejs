@@ -16,12 +16,12 @@
                     },
                     initAjax: {
                         url: "http://202.121.178.141/cgi-bin/MDPA/HPOTreeData.cgi",
-                        data: {"ID": 'all'}
+                        data: {"ID": 'all', 'eng': eng}
                     },
                     onLazyRead: function (node) {
                         node.appendAjax({
                             url: "http://202.121.178.141/cgi-bin/MDPA/HPOTreeData.cgi",
-                            data: {"ID": node.data.key}
+                            data: {"ID": node.data.key, 'eng': eng}
                             // We don't want the next line in production code:
                             // debugLazyDelay: 750
                         });
@@ -33,10 +33,16 @@
         </div>
     </div>
     <div class="col-md-8">
-        推荐信息:
-        <span id="rcmd-0000478" class="badge" onclick="addSelect(this.id.substr(5), this.innerText)">眼部异常</span>
-        <span id="rcmd-0000598" class="badge" onclick="addSelect(this.id.substr(5), this.innerText)">耳部异常</span>
-        <span id="rcmd-0000707" class="badge" onclick="addSelect(this.id.substr(5), this.innerText)">神经系统异常</span>
+        <% if (lan == 'eng') { %>Recommended<% } else { %>推荐信息<% } %>:
+        <span id="rcmd-0000478" class="badge" onclick="addSelect(this.id.substr(5), this.innerText)">
+            <% if (lan == 'eng') { %>obsolete Abnormality of the ocular region<% } else { %>眼部异常<% } %>
+        </span>
+        <span id="rcmd-0000598" class="badge" onclick="addSelect(this.id.substr(5), this.innerText)">
+            <% if (lan == 'eng') { %>Abnormality of the ear<% } else { %>耳部异常<% } %>
+        </span>
+        <span id="rcmd-0000707" class="badge" onclick="addSelect(this.id.substr(5), this.innerText)">
+            <% if (lan == 'eng') { %>Abnormality of the nervous system<% } else { %>神经系统异常<% } %>
+        </span>
         <hr>
         <!--搜索栏-->
         <div class="row search-area">
@@ -44,7 +50,7 @@
                 $(document).ready(function() {
                     $("#sel_menu2").select2({
                         multiple:true,
-                        placeholder:'请输入症状名或症状ID',
+                        placeholder: eng == 1 ? 'Please enter phenotype name or ID' : '请输入症状名或症状ID',
                         ajax:
                         {
                             url:"http://202.121.178.141/cgi-bin/MDPA/SearchDB.cgi",
@@ -71,7 +77,7 @@
                             return markup;
                         }, // let our custom formatter work
                         minimumInputLength: 2,
-                        formatInputTooShort:  "请输入至少2个字符以进行检索",
+                        formatInputTooShort:  eng == 1 ? 'Please enter at least 2 characters' : "请输入至少2个字符以进行检索",
                         //maximumInputLength: 40,
                         templateResult:formatRepo,
                         templateSelection:formatRepoSelection
@@ -154,7 +160,7 @@
                     <select id="sel_menu2" name="HPO" multiple="multiple" class="form-control">
                     </select>
                 </div>
-                <input id="go-btn" type='button' value="搜索" class="btn btn-primary col-md-2 search-btn" onclick='searchSubmit()'>
+                <input id="go-btn" type='button' value="<% if (lan == 'eng') { %>Search<% } else { %>搜索<% } %>" class="btn btn-primary col-md-2 search-btn" onclick='searchSubmit()'>
             </FORM>
         </div>
         <!--列表-->
@@ -172,7 +178,7 @@
                         {
                             type : 'GET',
                             url : 'http://202.121.178.141/cgi-bin/MDPA/NodeInfo.cgi',
-                            data : "ID=" + id,
+                            data : "ID=" + id + '&eng=' + eng,
                             success : function(data)
                             {
                                 var row = $.parseJSON(data);
@@ -211,14 +217,24 @@
             <label id="table-tip">
                 <br/>
                 <br/>
+                <% if (lan == 'eng') { %>
+                Please type in the text area, or click the arrow button in the tree diagram on the left to view detailed info
+                <% } else { %>
                 请在搜索栏中输入，或点击左侧树状图中的箭头按钮，即可显示详细信息
+                <% } %>
             </label>
             <table id="diseaseTable" class="table table-bordered table-striped dataTable" role="grid">
                 <thead>
                 <tr role="row">
-                    <th class="col-md-2" title="症状名">名字</th>
-                    <th class="col-md-4" title="症状的详细解释">描述</th>
-                    <th class="col-md-6" title="该症状所包含的具体症状，点击可添加">详细</th>
+                    <th class="col-md-2" title="<% if (lan == 'eng') { %>Name of the phenotype<% } else { %>症状名<% } %>">
+                        <% if (lan == 'eng') { %>Name<% } else { %>名字<% } %>
+                    </th>
+                    <th class="col-md-4" title="<% if (lan == 'eng') { %>Detailed explanation of the phenotype<% } else { %>症状的详细解释<% } %>">
+                        <% if (lan == 'eng') { %>Explanation<% } else { %>描述<% } %>
+                    </th>
+                    <th class="col-md-6" title="<% if (lan == 'eng') { %>Specific phenotypes contained in this phenotype, click to add to the list<% } else { %>该症状所包含的具体症状，点击可添加<% } %>">
+                        <% if (lan == 'eng') { %>Detail<% } else { %>详细<% } %>
+                    </th>
                 </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>

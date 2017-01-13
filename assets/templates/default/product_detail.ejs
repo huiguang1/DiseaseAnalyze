@@ -73,12 +73,12 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" id="my-brand" href="#">
-                <p id="mydoc-title">疾病 OMIM:<%-diseaseID%></p>
+                <p id="mydoc-title"><% if (lan == 'eng') { %>Disease<% } else { %>疾病<% } %> OMIM:<%-diseaseID%></p>
             </a>
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav navbar-right">
-                <li><a href="/index">返回首页</a></li>
+                <li><a href="/index"><% if (lan == 'eng') { %>Home page<% } else { %>返回首页<% } %></a></li>
             </ul>
         </div>
     </div><!-- /.container-fluid -->
@@ -93,7 +93,7 @@
                     &times;
                 </button>
                 <h4 class="modal-title" id="myModalLabel">
-                    症状关系图
+                    <% if (lan == 'eng') { %>Phenotype relation diagram<% } else { %>症状关系图<% } %>
                 </h4>
             </div>
             <div class="modal-body">
@@ -110,6 +110,7 @@
 <div class="container">
     <div class="home-page main">
         <script>
+            var eng = '<%-lan%>' == 'eng' ? 1 : 0;
             //取URL参数的辅助函数
             function getUrlParam(name) {
                 var reg = new RegExp("(^|&)" + name + "=([^&]*)", "g"); //构造一个含有目标参数的正则表达式对象
@@ -133,6 +134,7 @@
                     params += 'HPO=' + hpo[i] + '&';
                 }
                 params += 'disID=' + '<%-diseaseID%>';
+                params += '&eng=' + eng;
                 //获取疾病数据以及症状联系
                 $.ajax(
                         {
@@ -171,7 +173,7 @@
                         }
                         $('#table-phenotype').show();
                         //列出未匹配的症状
-                        $('#table-tip').html('该疾病的其他症状：');
+                        $('#table-tip').html(eng == 1 ? 'Other phenotypes of this disease: ' : '该疾病的其他症状：');
                         var remainHtml = '';
                         for (i = 0;i < remain.length;i++){
                             remainHtml += '<span class="badge badge-phenotype">'+remain[i].phenotype+'</span>&nbsp;';
@@ -182,14 +184,22 @@
                 <table id="table-phenotype" class="table table-bordered table-striped dataTable" role="grid" hidden>
                     <thead>
                     <tr role="row">
-                        <th title="您搜索的症状" class="col-md-4">搜索症状</th>
-                        <th title="本疾病的症状" class="col-md-4">疾病症状</th>
-                        <th title="疾病症状与搜索症状之间的相似度" class="col-md-4">相似度</th>
+                        <th title="<% if (lan == 'eng') { %>The phenotype you searched<% } else { %>您搜索的症状<% } %>" class="col-md-4">
+                            <% if (lan == 'eng') { %>Seached phenotype<% } else { %>搜索症状<% } %>
+                        </th>
+                        <th title="<% if (lan == 'eng') { %>The phenotype of this disease<% } else { %>本疾病的症状<% } %>" class="col-md-4">
+                            <% if (lan == 'eng') { %>Disease phenotype<% } else { %>疾病症状<% } %>
+                        </th>
+                        <th title="<% if (lan == 'eng') { %>Similarity between disease phenotype and searched phenotype<% } else { %>疾病症状与搜索症状之间的相似度<% } %>" class="col-md-4">
+                            <% if (lan == 'eng') { %>Similarity<% } else { %>相似度<% } %>
+                        </th>
                     </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
                 </table>
-                <label id="table-tip">疾病信息加载中，请稍候……</label>
+                <label id="table-tip">
+                    <% if (lan == 'eng') { %>Loading disease data, please wait...<% } else { %>疾病信息加载中，请稍候……<% } %>
+                </label>
                 <div id="symptoms-other">
                 </div>
                 <script>
@@ -197,6 +207,7 @@
                     function buildNetwork(index){
                         var params = '?HPO=' + matchedPheno[index][0];
                         params += '&HPO=' + matchedPheno[index][1];
+                        params += '&eng=' + eng;
                         $.ajax({
                             url : "http://202.121.178.141/cgi-bin/MDPA/Network.cgi" + params,
                             type: 'GET',
