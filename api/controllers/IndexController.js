@@ -21,7 +21,8 @@ module.exports = {
     index: function(req, res, next) {
         res.locals.view = "index";
         var lan = req.param('lan');
-        req.session.lan = lan;
+        if (typeof lan != 'undefined' && lan != '')
+            req.session.lan = lan;
         res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
 
         return res.templet({});
