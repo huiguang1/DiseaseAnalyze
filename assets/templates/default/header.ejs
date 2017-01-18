@@ -19,10 +19,7 @@
 
 
     <link rel="stylesheet" href="<%=static_dir%>/bootstrap-3.3.5-dist/css/bootstrap.css"/>
-    <script
-            src="https://code.jquery.com/jquery-1.12.4.js"
-            integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
-            crossorigin="anonymous"></script>
+    <script src="<%=static_dir%>/js/jquery-1.12.4.js"></script>
 
     <!-- dynatree -->
     <script src="<%=static_dir%>/js/dynatree/jquery/jquery-ui.custom.js"></script>
@@ -76,25 +73,27 @@
                     <p>GPS搜索</p>
                 </a-->
             </div>
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav navbar-right col-md-2">
-
-                    <li><a href="http://202.121.178.141/MDPA/index.html">
-                            <div><% if (lan == 'eng') { %>Old version<% } else { %>回到旧版<% } %></div>
-                        </a></li>
-                    <li><a href="javascript:void(0);" onclick="setFavor('Genotype Phenotype Search', window.location.host);">
-                            <div><% if (lan == 'eng') { %>Add to favourites<% } else { %>加入收藏<% } %></div>
-                        </a></li>
-                    <!--li><a href="http://transmed.sjtu.edu.cn/yale.html">
-                            <div><% if (lan == 'eng') { %>Contact us<% } else { %>联系我们<% } %></div>
-                        </a></li-->
-                </ul>
-                <ul class="nav navbar-nav navbar-right">
-                    <li><% if (lan == 'eng') { %><a class="lan-switch" href="/index?lan=chs">切换至中文版</a>
-                        <% } else { %><a class="lan-switch" href="/index?lan=eng">English version<% } %></a></li>
-                </ul>
-            </div><!-- /.navbar-collapse -->
+            <!-- 顶部导航条右侧栏 -->
+            <div class="my-navbar-right">
+                <a href="http://202.121.178.141/MDPA/index.html">
+                    <div><span class="badge"><% if (lan == 'eng') { %>Old version<% } else { %>回到旧版<% } %></span></div>
+                </a>
+                <a href="javascript:void(0);" onclick="setFavor('Genotype Phenotype Search', window.location.host);">
+                    <div><span class="badge"><% if (lan == 'eng') { %>Add to favourites<% } else { %>加入收藏<% } %></span></div>
+                </a>
+                <a href="http://transmed.sjtu.edu.cn/yale.html">
+                    <div><span class="badge"><% if (lan == 'eng') { %>Contact us<% } else { %>联系我们<% } %></span></div>
+                </a>
+                <% if (lan == 'eng') { %>
+                    <a class="lan-switch" href="/index?lan=chs">
+                        <div><span class="badge">切换至中文版</span></div>
+                    </a>
+                <% } else { %>
+                    <a class="lan-switch" href="/index?lan=eng">
+                        <div><span class="badge">English version</span></div>
+                    </a>
+                <% } %>
+            </div>
         </div><!-- /.container-fluid -->
     </nav>
     <br/>
