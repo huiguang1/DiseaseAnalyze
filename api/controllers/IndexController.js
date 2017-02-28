@@ -24,6 +24,16 @@ module.exports = {
         if (typeof lan != 'undefined' && lan != '')
             req.session.lan = lan;
         res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
+        res.locals.navMod = 0;
+
+        return res.templet({});
+    },
+
+    geneDiag: function(req, res, next) {
+        res.locals.view = "gene_diag";
+
+        res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
+        res.locals.navMod = 1;
 
         return res.templet({});
     },

@@ -1,5 +1,8 @@
 a { color: #0078CF; }
+input, select, textarea { width: 100%; }
 
+/* header
+------------------------------------------------ */
 .img-brand { height: 6vw; padding: 0.5em; width: 100%; }
 .navbar-header label { color: white; margin-bottom: 0; font-size: 1.5em; padding: 1vw; }
 .navbar-header a { padding: 0; }
@@ -8,6 +11,11 @@ a { color: #0078CF; }
 .my-navbar-right { float: right; }
 .my-navbar-right > a > div > span { width: 100%; text-align: center; background: black; }
 .container { margin-top: 6vw; }
+.nav-mod { background-color: lightgrey; border: 3px grey solid; }
+.nav-module { text-align: center; font-size: 2em; }
+.nav-module-selected { text-align: center; background-color: #0a3e7a}
+/* index
+------------------------------------------------- */
 
 .search-div { padding-left: 0; padding-right: 0; }
 .search-area { position: relative; margin-left: 0; margin-right: 0;}

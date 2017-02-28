@@ -35,6 +35,12 @@ module.exports.routes = {
     controller: 'IndexController'
   },
 
+  '/gene_diag': {
+    controller: 'IndexController',
+    action: 'geneDiag'
+  },
+
+
   '/list': {
     controller: 'IndexController',
     action: 'list'

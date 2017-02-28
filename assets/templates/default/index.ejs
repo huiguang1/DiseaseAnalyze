@@ -1,5 +1,44 @@
 <% include ./header.ejs %>
 <div class="row">
+
+
+    <div id="alertDat"></div>
+    <script>
+        var alertDat = '';
+        function addDescription(){
+            recurConstruct('0003011', 0);
+            $('#alertDat').html(alertDat);
+            alertDat = '';
+        }
+        function recurConstruct(id, indent){
+            indent += 4;
+            $.ajax(
+                {
+                    type : 'GET',
+                    url : 'http://202.121.178.141/cgi-bin/MDPA/HPOTreeData.cgi',
+                    data : "ID=" + id,
+                    async: false,
+                    success : function(data)
+                    {
+                        var raw = $.parseJSON(data);
+                        for (var i in raw){
+                            for (var j = 0;j < indent;j++){
+                                alertDat += '&nbsp;';
+                            }
+                            alertDat += raw[i].title + '：' + raw[i].tooltip + '<br/>';
+                            if (raw[i].isLazy){
+                                recurConstruct(raw[i].key, indent);
+                            }
+                        }
+                    }
+                }
+            );
+            indent -= 4;
+        }
+    </script>
+    <button onclick="addDescription();">addDescription</button>
+
+
     <!--左侧边栏-->
     <div class="col-md-4">
         <script language="javascript">
@@ -17,6 +56,7 @@
                     initAjax: {
                         url: "http://202.121.178.141/cgi-bin/MDPA/HPOTreeData.cgi",
                         data: {"ID": 'all', 'eng': eng}
+
                     },
                     onLazyRead: function (node) {
                         node.appendAjax({

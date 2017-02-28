@@ -1,54 +1,4 @@
-<!DOCTYPE html>
-<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
-<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
-<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
-<head>
-    <meta charset="UTF-8">
-
-    <!-- Remove this line if you use the .htaccess -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width">
-
-    <meta name="description" content="Designa Studio, a HTML5 / CSS3 template.">
-    <meta name="author" content="Sylvain Lafitte, Web Designer, sylvainlafitte.com">
-
-    <title>Genotype Phenotype Search</title>
-
-    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
-
-
-    <link rel="stylesheet" href="<%=static_dir%>/bootstrap-3.3.5-dist/css/bootstrap.css"/>
-    <script src="<%=static_dir%>/js/jquery-1.12.4.js"></script>
-
-    <!-- dynatree -->
-    <script src="<%=static_dir%>/js/dynatree/jquery/jquery-ui.custom.js"></script>
-    <script src="<%=static_dir%>/js/dynatree/jquery/jquery.cookie.js"></script>
-    <link href="<%=static_dir%>/js/dynatree/src/skin/ui.dynatree.css" rel="stylesheet" type="text/css">
-    <script src="<%=static_dir%>/js/dynatree/src/jquery.dynatree.js"></script>
-
-    <!-- This will do the pagination -->
-    <script src="<%=static_dir%>/js/pagination.js"></script>
-    <link href="<%=static_dir%>/css/pagination.css" rel="stylesheet" />
-
-    <!--bootstrap-->
-    <script src="<%=static_dir%>/bootstrap-3.3.5-dist/js/bootstrap.js"></script>
-
-    <!--select2 deals with the search box-->
-    <link href="<%=static_dir%>/js/select2-4.0.3/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="<%=static_dir%>/js/select2-4.0.3/dist/js/select2.full.min.js"></script>
-
-
-    <link rel="stylesheet" href="<%=static_dir%>/css/style.css">
-    <link rel="stylesheet" href="<%=static_dir%>/css/myStyle.css">
-
-    <!--[if lt IE 9]>
-    <script src="<%=static_dir%>/http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-</head>
-
-<body>
-
+<% include ./header.ejs %>
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content" id="contentNewGene" hidden>
@@ -142,69 +92,114 @@
         </div>
     </div><!-- /.modal -->
 </div>
+<div class="row">
+    <form id="formMain">
+        <div class="col-md-4">
+            <label>
+                性别
+                <select name="gender">
+                    <option value="male">男</option>
+                    <option value="female">女</option>
+                </select>
+            </label>
+        </div>
+        <div class="col-md-4">
+            <label>
+                年龄
+                <input name="age">
+            </label>
+        </div>
+        <div class="col-md-4">
+            <label>遗传方式
+                <select name="inheritance">
+                    <option value="unknown">未知</option>
+                    <option value="recessive">常染色体隐性</option>
+                    <option value="dominant">常染色体显性</option>
+                    <option value="XRecessive">X连锁隐性</option>
+                    <option value="XDominant">X连锁显性</option>
+                    <option value="YChain">Y染色体连锁</option>
+                </select>
+            </label>
+        </div>
+    </form>
+</div>
+<div class="row">
+    <script>
+        var geneFiles = [];
+        var chromosomeEntries = [];
+        $(document).ready(function() {
+            //注册myModal打开和关闭事件
+            $('#myModal').on('shown.bs.modal', function() {
+                $('#contentNewGene').show();
+            }).on('hide.bs.modal', function(){
+                $('#contentNewGene').hide();
+                $('#contentNewChromosome').hide();
+            });
+        })
 
-<script>
-    var eng = '<%-lan%>' == 'eng' ? 1 : 0;
-</script>
-    <!-- Prompt IE 7 users to install Chrome Frame -->
-    <!--[if lt IE 8]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container-fluid">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header col-md-10">
-                <a href="/index" class="col-md-2">
-                    <img class="img-brand" alt="Brand" src="<%=static_dir%>/img/logo.png"/>
-                </a>
-                <a href="http://transmed.sjtu.edu.cn/yale.html" class="col-md-1">
-                    <img class="img-brand" alt="Brand" src="<%=static_dir%>/img/logo-sjtu.png"/>
-                </a>
-                <a href="http://transmed.sjtu.edu.cn/yale.html" class="col-md-1">
-                    <img class="img-brand" alt="Brand" src="<%=static_dir%>/img/logo-yale.png"/>
-                </a>
-                <a href="http://www.shchildren.com.cn" class="col-md-3">
-                    <img class="img-brand" alt="Brand" src="<%=static_dir%>/img/logo-sch.png"/>
-                </a>
-                <!--a class="navbar-brand col-md-2" id="my-brand" href="/index">
-                    <p>GPS搜索</p>
-                </a-->
-            </div>
-            <!-- 顶部导航条右侧栏 -->
-            <div class="my-navbar-right">
-                <a href="http://202.121.178.141/MDPA/index.html">
-                    <div><span class="badge"><% if (lan == 'eng') { %>Old version<% } else { %>回到旧版<% } %></span></div>
-                </a>
-                <a href="javascript:void(0);" onclick="setFavor('Genotype Phenotype Search', window.location.host);">
-                    <div><span class="badge"><% if (lan == 'eng') { %>Add to favourites<% } else { %>加入收藏<% } %></span></div>
-                </a>
-                <a href="http://transmed.sjtu.edu.cn/yale.html">
-                    <div><span class="badge"><% if (lan == 'eng') { %>Contact us<% } else { %>联系我们<% } %></span></div>
-                </a>
-                <% if (lan == 'eng') { %>
-                    <a class="lan-switch" href="/index?lan=chs">
-                        <div><span class="badge">切换至中文版</span></div>
-                    </a>
-                <% } else { %>
-                    <a class="lan-switch" href="/index?lan=eng">
-                        <div><span class="badge">English version</span></div>
-                    </a>
-                <% } %>
-            </div>
-        </div><!-- /.container-fluid -->
-    </nav>
-    <br/>
-    <br/>
-    <div class="container">
-        <div class="home-page main">
-            <!--功能模块导航栏-->
-            <div class="row nav-mod">
-                <% var navModule = typeof navMod == 'undefined' ? -1 : navMod;%>
-                <div class="col-md-3 nav-module <%-navModule==0 ? 'nav-module-selected' : ''%>">
-                    <a href="/index">症状诊断</a>
-                </div>
-                <div class="col-md-3 nav-module <%-navModule==1 ? 'nav-module-selected' : ''%>">
-                    <a href="/gene_diag">基因诊断</a>
-                </div>
-                <div class="col-md-3 nav-module">综合诊断</div>
-                <div class="col-md-3 nav-module">病例库</div>
-            </div>
-            <br/>
+        //打开新建基因窗体
+        function newGene(){
+            $('#myModal').modal('show');
+        }
+
+        //检查文件名称是否存在，然后切换至次级窗体
+        function openForm(formName, fileName) {
+            for (var i =0;i < geneFiles.length;i++){
+                if (geneFiles[i].fileName == fileName)
+                {
+                    alert('文件名已存在，请重新输入！');
+                    return;
+                }
+            }
+
+            $('#contentNewGene').hide();
+            $('#content' + formName).show();
+        }
+
+        //新增染色体异常项，加入表格
+        function addChromosome() {
+            var form = document.getElementById('formNewChromosome');
+
+            var html = '<tr role="row" class="color-palette">';
+            html += '<td>' + form.elements['chromosome'].value
+                + form.elements['chromosomeArm'].value
+                + form.elements['location'].value + '</td>';
+            html += '<td>' + form.elements['variationType'].value + '</td>';
+
+
+            html += '</tr>';
+            $('#chromosomeTableBody').append($(html));
+            var newName = $('<td>'+row.chname+'</td>');
+            if (row.description == "NULL") row.description = "";
+            var newDcrp = $('<td>'+row.description+'</td>');
+            var links = "";
+            for (var i in row.children){
+                links += '<a onclick="addSelect(\''+row.children[i].key+'\', \''+row.children[i].chname+
+                    '\')">'+row.children[i].chname+'</a>&nbsp;';
+            }
+            var newLeaf = $('<td>'+links+'</td>');
+        }
+    </script>
+    <div class="row">
+        基因变异文件：
+        <button onclick="newGene()">新建</button>
+    </div>
+    <table id="geneTable" class="table table-bordered table-striped dataTable" role="grid">
+        <thead>
+        <tr role="row">
+            <th class="col-md-5" title="<% if (lan == 'eng') { %>Name of the file<% } else { %>文件名<% } %>">
+                <% if (lan == 'eng') { %>File Name<% } else { %>文件名<% } %>
+            </th>
+            <th class="col-md-5" title="<% if (lan == 'eng') { %>Type<% } else { %>类型<% } %>">
+                <% if (lan == 'eng') { %>Type<% } else { %>类型<% } %>
+            </th>
+            <th class="col-md-2" title="<% if (lan == 'eng') { %>Whether this entry is valid as a datum for diagnosing.<% } else { %>该条目是否用作诊断数据<% } %>">
+                <% if (lan == 'eng') { %>valid<% } else { %>用于诊断<% } %>
+            </th>
+        </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<% include ./footer.ejs %>
