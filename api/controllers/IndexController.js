@@ -1,4 +1,5 @@
 var Promise = require('es6-promise').Promise;
+var Crypto = require('crypto');
 
 var pageSize = 12;
 
@@ -12,6 +13,21 @@ function getNArray(n){
         arr[i-1] = i;
     }
     return arr;
+}
+
+function myMD5(str) {
+    var md5sum = Crypto.createHash('md5');
+    md5sum.update(str);
+    str = md5sum.digest('hex');
+    return str;
+}
+
+function quickTemplate(req, res) {
+    res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
+    if (typeof req.session.userName != 'undefined'){
+        res.locals.userName = req.session.userName;
+    }
+    return res.templet({});
 }
 
 module.exports = {
@@ -349,6 +365,36 @@ module.exports = {
         return res.templet({});
     },
 
+    signUp: function(req, res, next) {
+        var usrName = req.param("name").trim();
+        var psw = myMD5(req.param("password").trim());
+        User.create({
+            name: usrName,
+            password: psw,
+            authorization: 0
+        }).then(function (user) {
+            req.session.userName = user.name;
+            res.send('success');
+        }, function(err){
+            res.send('exist');
+        });
+        return;
+
+        User.create({
+            name: 'tester',
+            password: 'tester',
+            authorization: '0'
+        }).then(function () {
+
+            res.locals.view = "index";
+            res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
+            return res.templet({});
+        })
+    },
+
+    signIn: function(req, res, next) {
+
+    },
 
     /**
      * 详情页 

@@ -64,6 +64,17 @@ module.exports.routes = {
   '/randompng': {
     controller: 'IndexController',
     action: 'randompng'
+  },
+
+  '/signUp': {
+    controller: 'IndexController',
+    action: 'signUp'
+  },
+
+
+  '/signIn': {
+      controller: 'IndexController',
+      action: 'signIn'
   }
 
   /***************************************************************************

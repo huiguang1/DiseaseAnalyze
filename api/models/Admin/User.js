@@ -2,85 +2,23 @@
  * Admin/login.js
  */
 module.exports = {
-	tableName: 'user',
+	tableName: 'Web_users',
 	autoCreatedAt: false,
 	autoUpdatedAt: false,
 	attributes: {
-		id: {
-			type: 'integer',
+		name: {
+			type: 'string',
 			unique: true,
 			primaryKey: true,
-			columnName: 'id'
-		},
-		usergroup: {
-			type: 'integer',
-			columnName: 'usergroup',
-            model: 'Groups'
-		},
-		username: {
-			unique: true,
-			type: 'string',
-			columnName: 'username'
+			columnName: 'Name'
 		},
 		password: {
 			type: 'string',
 			columnName: 'password'
 		},
-		email: {
-			type: 'email',
-			columnName: 'email'
-		},
-		realname: {
-			type: 'string',
-			columnName: 'realname'
-		},
-		sex: {
+		authorization: {
 			type: 'integer',
-			columnName: 'sex'
-		},
-		tel: {
-			type: 'string',
-			columnName: 'tel'
-		},
-		mobile: {
-			type: 'string',
-			columnName: 'mobile'
-		},
-		fax: {
-			type: 'string',
-			columnName: 'fax'
-		},
-		address: {
-			type: 'string',
-			columnName: 'address'
-		},
-		createtime: {
-			type: 'integer',
-			columnName: 'createtime'
-		},
-		updatetime: {
-			type: 'integer',
-			columnName: 'updatetime'
-		},
-		lasttime: {
-			type: 'integer',
-			columnName: 'lasttime'
-		},
-		regip: {
-			type: 'string',
-			columnName: 'regip'
-		},
-		lastip: {
-			type: 'string',
-			columnName: 'lastip'
-		},
-		logincount: {
-			type: 'integer',
-			columnName: 'logincount'
-		},
-		status: {
-			type: 'integer',
-			columnName: 'status'
+			columnName: 'Authorization'
 		}
 	},
 

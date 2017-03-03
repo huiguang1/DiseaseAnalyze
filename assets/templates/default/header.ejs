@@ -20,6 +20,7 @@
 
     <link rel="stylesheet" href="<%=static_dir%>/bootstrap-3.3.5-dist/css/bootstrap.css"/>
     <script src="<%=static_dir%>/js/jquery-1.12.4.js"></script>
+    <script src="<%=static_dir%>/js/jquery.form.js"></script>
 
     <!-- dynatree -->
     <script src="<%=static_dir%>/js/dynatree/jquery/jquery-ui.custom.js"></script>
@@ -49,95 +50,44 @@
 
 <body>
 
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content" id="contentNewGene" hidden>
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                    &times;
-                </button>
-                <h4 class="modal-title">
-                    <% if (lan == 'eng') { %>New gene<% } else { %>新增基因<% } %>
-                </h4>
-            </div>
-            <div class="modal-body">
-                <form id="formNewGene">
-                    <label class="col-md-6"><% if (lan == 'eng') { %>File type: <% } else { %>文件类型：<% } %>
-                        <select name="type">
-                            <option value="gene"><% if (lan == 'eng') { %>Genovariation<% } else { %>基因变异<% } %></option>
-                            <option value="chromosome"><% if (lan == 'eng') { %>Chromosome variation<% } else { %>染色体变异<% } %></option>
-                        </select>
-                    </label>
-                    <label class="col-md-6"><% if (lan == 'eng') { %>Patient: <% } else { %>病患：<% } %>
-                        <select name="patient">
-                            <option value="self"><% if (lan == 'eng') { %>Self<% } else { %>本人<% } %></option>
-                            <option value="father"><% if (lan == 'eng') { %>Father<% } else { %>父亲<% } %></option>
-                            <option value="mother"><% if (lan == 'eng') { %>Mother<% } else { %>母亲<% } %></option>
-                            <option value="grandfather"><% if (lan == 'eng') { %>Grandfather<% } else { %>祖父<% } %></option>
-                            <option value="grandmother"><% if (lan == 'eng') { %>Grandmother<% } else { %>祖母<% } %></option>
-                        </select>
-                    </label>
-                    <label class="col-md-12"><% if (lan == 'eng') { %>File name: <% } else { %>文件名：<% } %>
-                        <input name="fileName">
-                    </label>
-                </form>
-                <button onclick="openForm('NewChromosome', document.getElementById('formNewGene').elements['fileName'].value)"><% if (lan == 'eng') { %>Next<% } else { %>下一步<% } %></button>
-            </div>
-        </div><!-- contentNewGene -->
-        <div class="modal-content" id="contentNewChromosome" hidden>
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                    &times;
-                </button>
-                <h4 class="modal-title">
-                    <% if (lan == 'eng') { %>New chromosome variation<% } else { %>新增染色体变异<% } %>
-                </h4>
-            </div>
-            <div class="modal-body">
-                <form id="formNewChromosome">
-                    <label><% if (lan == 'eng') { %>Chromosome<% } else { %>染色体<% } %>
-                        <select name="chromosome">
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="X">X</option>
-                            <option value="Y">Y</option>
-                        </select>
-                    </label>
-                    <label><% if (lan == 'eng') { %>chromosome arm<% } else { %>染色体臂<% } %>
-                        <select name="chromosomeArm">
-                            <option value="p">p</option>
-                            <option value="q">q</option>
-                        </select>
-                    </label>
-                    <label><% if (lan == 'eng') { %>Location<% } else { %>位置<% } %>
-                        <input name="location">
-                    </label>
-                    <label><% if (lan == 'eng') { %>Type<% } else { %>类型<% } %>
-                        <select name="variationType">
-                            <option value="insertion"><% if (lan == 'eng') { %>insertion<% } else { %>插入<% } %></option>
-                            <option value="deletion"><% if (lan == 'eng') { %>deletion<% } else { %>缺失<% } %></option>
-                        </select>
-                    </label>
-                </form>
-                <button onclick="addChromosome()"><% if (lan == 'eng') { %>Add<% } else { %>添加<% } %></button>
-                <table id="chromosomeTable" class="table table-bordered table-striped dataTable" role="grid">
-                    <thead>
-                    <tr role="row">
-                        <th class="col-md-4" title="<% if (lan == 'eng') { %>Chromosome Location<% } else { %>染色体位置<% } %>">
-                            <% if (lan == 'eng') { %>Location<% } else { %>位置<% } %>
-                        </th>
-                        <th class="col-md-3" title="<% if (lan == 'eng') { %>Type<% } else { %>类型<% } %>">
-                            <% if (lan == 'eng') { %>Type<% } else { %>类型<% } %>
-                        </th>
-                        <th class="col-md-5" title="<% if (lan == 'eng') { %>Do something to this entry<% } else { %>对该条目进行操作<% } %>">
-                            <% if (lan == 'eng') { %>Operation<% } else { %>操作<% } %>
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody id="chromosomeTableBody"></tbody>
-                </table>
+        <div class="modal-content" id="contentSignUp">
+            <ul class="nav nav-tabs" id="myTab">
+                <li class="active">
+                    <a href="#bodySignIn" data-toggle="tab"><% if (lan == 'eng') { %>Sign in<% } else { %>登录<% } %></a>
+                </li>
+                <li class="">
+                    <a href="#bodySignUp" data-toggle="tab"><% if (lan == 'eng') { %>Sign up<% } else { %>注册<% } %></a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="modal-body tab-pane active" id="bodySignUp">
+                    <form action="signUp" method="post" onsubmit="return checkSignUp(this);">
+                        <label class="col-md-6" style="z-index: 1"><% if (lan == 'eng') { %>User name: <% } else { %>用户名：<% } %>
+                            <input name="name">
+                        </label>
+                        <label class="col-md-6"><% if (lan == 'eng') { %>Password: <% } else { %>密码：<% } %>
+                            <input name="password" type="password"><% if (lan == 'eng') { %>More than 6 characters<% } else { %>请输入6位以上的密码<% } %>
+                        </label>
+                        <label class="col-md-6" style="float: none; "><% if (lan == 'eng') { %>Password again: <% } else { %>再次输入密码：<% } %>
+                            <input name="verifyPassword" type="password">
+                        </label>
+                        <button class="btn btn-default" type="submit">提交</button>
+                    </form>
+                </div>
+                <div class="modal-body tab-pane" id="bodySignIn">
+                    <form action="signIn" method="post">
+                        <label class="col-md-6"><% if (lan == 'eng') { %>User name: <% } else { %>用户名：<% } %>
+                            <input name="name">
+                        </label>
+                        <label class="col-md-6"><% if (lan == 'eng') { %>Password: <% } else { %>密码：<% } %>
+                            <input name="password">
+                        </label>
+                        <button class="btn" type="submit">提交</button>
+                    </form>
+                </div>
 
-                <button onclick="saveChromosome()"><% if (lan == 'eng') { %>OK<% } else { %>确定<% } %></button>
             </div>
         </div>
     </div><!-- /.modal -->
@@ -145,6 +95,44 @@
 
 <script>
     var eng = '<%-lan%>' == 'eng' ? 1 : 0;
+    $(function () {
+        $('#myTab a:last').tab('show');
+    })
+
+    function signInOrUp(){
+        $('#loginModal').modal('show');
+    }
+
+    function checkSignUp(form) {
+        if (form.elements['name'].value.length <= 0 || form.elements['name'].value.length > 20)
+        {
+            alert('用户名长度在1-20之间！')
+            return false;
+        }
+        if (form.elements['password'].value.length < 6 || form.elements['password'].value.length > 20)
+        {
+            alert('密码长度在6-20之间！')
+            return false;
+        }
+        if (form.elements['password'].value != form.elements['verifyPassword'].value)
+        {
+            alert('两次输入的密码不一致！')
+            return false;
+        }
+        $(form).ajaxSubmit({
+            async: false,
+            complete: function (XHR, TS){
+                if (XHR.responseText == 'success'){
+                    alert('恭喜，注册成功！');
+                    window.location.href = '/';
+                }
+                else if (XHR.responseText == 'exist'){
+                    alert('该用户名已存在，请换其他用户名！');
+                }
+            }
+        });
+        return false;
+    }
 </script>
     <!-- Prompt IE 7 users to install Chrome Frame -->
     <!--[if lt IE 8]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
@@ -173,8 +161,11 @@
                 <a href="http://202.121.178.141/MDPA/index.html">
                     <div><span class="badge"><% if (lan == 'eng') { %>Old version<% } else { %>回到旧版<% } %></span></div>
                 </a>
-                <a href="javascript:void(0);" onclick="setFavor('Genotype Phenotype Search', window.location.host);">
+                <!--a href="javascript:void(0);" onclick="setFavor('Genotype Phenotype Search', window.location.host);">
                     <div><span class="badge"><% if (lan == 'eng') { %>Add to favourites<% } else { %>加入收藏<% } %></span></div>
+                </a-->
+                <a href="javascript:void(0);" onclick="signInOrUp();">
+                    <div><span class="badge"><% if (lan == 'eng') { %>Sign in/Sign up<% } else { %>登录/注册<% } %></span></div>
                 </a>
                 <a href="http://transmed.sjtu.edu.cn/yale.html">
                     <div><span class="badge"><% if (lan == 'eng') { %>Contact us<% } else { %>联系我们<% } %></span></div>
