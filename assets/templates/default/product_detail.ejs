@@ -136,21 +136,18 @@
                 params += 'disID=' + '<%-diseaseID%>';
                 params += '&eng=' + eng;
                 //获取疾病数据以及症状联系
-                $.ajax(
-                        {
-                            type : 'GET',
-                            url : 'http://202.121.178.141/cgi-bin/MDPA/DiseaseInfo.cgi' + params,
-                            success : function(data)
-                            {
-                                var raw = $.parseJSON(data);
-                                buildRelation(raw.Relations, raw.Remains);
-                                buildDetail(raw.Name, raw.Description, raw.Genes);
-                            },
-                            error : function()
-                            {
-                                //$diseaseList.html('<a href="/index">网络连接异常，点击返回搜索页</a>');
-                            }
-                        });
+                $.ajax({
+                    type: 'GET',
+                    url: 'http://202.121.178.141/cgi-bin/MDPA/DiseaseInfo.cgi' + params,
+                    success: function (data) {
+                        var raw = $.parseJSON(data);
+                        buildRelation(raw.Relations, raw.Remains);
+                        buildDetail(raw.Name, raw.Description, raw.Genes);
+                    },
+                    error: function () {
+                        //$diseaseList.html('<a href="/index">网络连接异常，点击返回搜索页</a>');
+                    }
+                });
 
             })
         </script>

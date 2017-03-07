@@ -26,6 +26,8 @@ function quickTemplate(req, res) {
     res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
     if (typeof req.session.userName != 'undefined'){
         res.locals.userName = req.session.userName;
+    } else {
+        res.locals.userName = '';
     }
     return res.templet({});
 }
@@ -39,19 +41,17 @@ module.exports = {
         var lan = req.param('lan');
         if (typeof lan != 'undefined' && lan != '')
             req.session.lan = lan;
-        res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
         res.locals.navMod = 0;
 
-        return res.templet({});
+        return quickTemplate(req, res);
     },
 
     geneDiag: function(req, res, next) {
         res.locals.view = "gene_diag";
 
-        res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
         res.locals.navMod = 1;
 
-        return res.templet({});
+        return quickTemplate(req, res);
     },
 
     /**
@@ -70,8 +70,7 @@ module.exports = {
             res.locals.searched[i] = idnName;
         }
 
-        res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
-        return res.templet({});
+        return quickTemplate(req, res);
 
         var hpo = req.param("HPO");
         var http = require('http');
@@ -247,8 +246,7 @@ module.exports = {
         res.locals.searched = hpo;
         res.locals.view = "product_detail";
 
-        res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
-        return res.templet({});
+        return quickTemplate(req, res);
 
 
 
@@ -361,13 +359,18 @@ module.exports = {
         res.locals.geneID = req.param("id").trim();
         res.locals.view = "gene_detail";
 
-        res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
-        return res.templet({});
+        return quickTemplate(req, res);
     },
 
     signUp: function(req, res, next) {
         var usrName = req.param("name").trim();
         var psw = myMD5(req.param("password").trim());
+        var verification = req.param("verification").trim();
+        if (verification != req.session.login.randomcode){
+            res.send('verification');
+            return;
+        }
+
         User.create({
             name: usrName,
             password: psw,
@@ -378,22 +381,38 @@ module.exports = {
         }, function(err){
             res.send('exist');
         });
-        return;
-
-        User.create({
-            name: 'tester',
-            password: 'tester',
-            authorization: '0'
-        }).then(function () {
-
-            res.locals.view = "index";
-            res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
-            return res.templet({});
-        })
     },
 
     signIn: function(req, res, next) {
+        //sign out
+        if (typeof req.param("name") == 'undefined'){
+            req.session.userName = '';
+            res.locals.view = "index";
+            return quickTemplate(req, res);
+        }
 
+        var usrName = req.param("name").trim();
+        var psw = myMD5(req.param("password").trim());
+        var verification = req.param("verification").trim();
+        if (verification != req.session.login.randomcode){
+            res.send('verification');
+            return;
+        }
+
+        User.find({
+            name: usrName,
+            password: psw
+        }).then(function (users) {
+            if (users.length < 1){
+                res.send('exist');
+            }
+            else {
+                req.session.userName = usrName;
+                res.send('success');
+            }
+        }, function(err){
+            res.send('error');
+        });
     },
 
     /**

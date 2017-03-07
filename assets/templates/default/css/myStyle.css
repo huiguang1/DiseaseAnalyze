@@ -25,7 +25,7 @@ input, select, textarea { width: 100%; }
 .dataTable tbody tr { background-color: white; }
 body { background-color: rgb(234, 246, 249); }
 span.dynatree-selected a { font-style: normal; color: black; }
-.sticky-right {position: fixed; top: 8vw; padding-left: 0; padding-right: 0; }
+.sticky-right {position: fixed; top: 12vw; padding-left: 0; padding-right: 0; }
 .noMargin { margin-left: 0; margin-right: 0; }
 .navbar-inverse { background-color: #0a3e7a; }
 

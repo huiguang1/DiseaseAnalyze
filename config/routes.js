@@ -75,6 +75,16 @@ module.exports.routes = {
   '/signIn': {
       controller: 'IndexController',
       action: 'signIn'
+  },
+
+  '/signOut': {
+      controller: 'IndexController',
+      action: 'signIn'
+  },
+
+  '/database': {
+      controller: 'IndexController',
+      action: 'database'
   }
 
   /***************************************************************************

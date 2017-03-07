@@ -55,36 +55,52 @@
         <div class="modal-content" id="contentSignUp">
             <ul class="nav nav-tabs" id="myTab">
                 <li class="active">
-                    <a href="#bodySignIn" data-toggle="tab"><% if (lan == 'eng') { %>Sign in<% } else { %>登录<% } %></a>
+                    <a href="#bodySignIn" id='tab-signIn' data-toggle="tab"><% if (lan == 'eng') { %>Sign in<% } else { %>登录<% } %></a>
                 </li>
                 <li class="">
-                    <a href="#bodySignUp" data-toggle="tab"><% if (lan == 'eng') { %>Sign up<% } else { %>注册<% } %></a>
+                    <a href="#bodySignUp" id='tab-signUp' data-toggle="tab"><% if (lan == 'eng') { %>Sign up<% } else { %>注册<% } %></a>
                 </li>
             </ul>
             <div class="tab-content">
-                <div class="modal-body tab-pane active" id="bodySignUp">
+                <div class="modal-body tab-pane" id="bodySignUp">
                     <form action="signUp" method="post" onsubmit="return checkSignUp(this);">
-                        <label class="col-md-6" style="z-index: 1"><% if (lan == 'eng') { %>User name: <% } else { %>用户名：<% } %>
-                            <input name="name">
-                        </label>
-                        <label class="col-md-6"><% if (lan == 'eng') { %>Password: <% } else { %>密码：<% } %>
-                            <input name="password" type="password"><% if (lan == 'eng') { %>More than 6 characters<% } else { %>请输入6位以上的密码<% } %>
-                        </label>
-                        <label class="col-md-6" style="float: none; "><% if (lan == 'eng') { %>Password again: <% } else { %>再次输入密码：<% } %>
-                            <input name="verifyPassword" type="password">
-                        </label>
-                        <button class="btn btn-default" type="submit">提交</button>
+                        <div class="row">
+                            <label class="col-md-6"><% if (lan == 'eng') { %>User name: <% } else { %>用户名：<% } %>
+                                <input name="name">
+                            </label>
+                            <label class="col-md-6"><% if (lan == 'eng') { %>Password: <% } else { %>密码：<% } %>
+                                <input name="password" type="password"><% if (lan == 'eng') { %>More than 6 characters<% } else { %>请输入6位以上的密码<% } %>
+                            </label>
+                        </div>
+                        <div class="row">
+                            <label class="col-md-6"><% if (lan == 'eng') { %>Verification: <% } else { %>验证码：<% } %>
+                                <input name="verification">
+                            </label>
+                            <label class="col-md-6"><% if (lan == 'eng') { %>Password again: <% } else { %>再次输入密码：<% } %>
+                                <input name="verifyPassword" type="password">
+                            </label>
+                        </div>
+                        <img id="rnd-img-1" src="" alt="验证码">
+                        <a href="javascript: void(0)" onclick="loadRndImg(1);"><% if (lan == 'eng') { %>Reload image<% } else { %>重新加载图像<% } %></a>
+                        <button class="btn btn-default pull-right" type="submit"><% if (lan == 'eng') { %>Submit<% } else { %>提交<% } %></button>
                     </form>
                 </div>
-                <div class="modal-body tab-pane" id="bodySignIn">
-                    <form action="signIn" method="post">
-                        <label class="col-md-6"><% if (lan == 'eng') { %>User name: <% } else { %>用户名：<% } %>
-                            <input name="name">
-                        </label>
-                        <label class="col-md-6"><% if (lan == 'eng') { %>Password: <% } else { %>密码：<% } %>
-                            <input name="password">
-                        </label>
-                        <button class="btn" type="submit">提交</button>
+                <div class="modal-body tab-pane active" id="bodySignIn">
+                    <form action="signIn" method="post" onsubmit="return checkSignIn(this);">
+                        <div class="row">
+                            <label class="col-md-6"><% if (lan == 'eng') { %>User name: <% } else { %>用户名：<% } %>
+                                <input name="name">
+                            </label>
+                            <label class="col-md-6"><% if (lan == 'eng') { %>Password: <% } else { %>密码：<% } %>
+                                <input name="password" type="password">
+                            </label>
+                            <label class="col-md-6"><% if (lan == 'eng') { %>Verification: <% } else { %>验证码：<% } %>
+                                <input name="verification">
+                            </label>
+                        </div>
+                        <img id="rnd-img-0" src="" alt="验证码">
+                        <a href="javascript: void(0)" onclick="loadRndImg(0);"><% if (lan == 'eng') { %>Reload image<% } else { %>重新加载图像<% } %></a>
+                        <button class="btn btn-default pull-right" type="submit"><% if (lan == 'eng') { %>Submit<% } else { %>提交<% } %></button>
                     </form>
                 </div>
 
@@ -96,11 +112,53 @@
 <script>
     var eng = '<%-lan%>' == 'eng' ? 1 : 0;
     $(function () {
-        $('#myTab a:last').tab('show');
+        $('#myTab a:first').tab('show');
+        $('#tab-signIn').on('show.bs.tab', function (e) {
+            loadRndImg(0);
+        });
+        $('#tab-signUp').on('show.bs.tab', function (e) {
+            loadRndImg(1);
+        })
     })
 
     function signInOrUp(){
+        loadRndImg(0);
         $('#loginModal').modal('show');
+    }
+
+    function loadRndImg(num){
+        document.getElementById('rnd-img-'+num).src = '/randompng?' + new Date();
+        //alert(new Date());
+    }
+
+    function checkSignIn(form) {
+        if (form.elements['name'].value.length <= 0 )
+        {
+            alert('请输入用户名！')
+            return false;
+        }
+        if (form.elements['password'].value.length <= 0)
+        {
+            alert('请输入密码！')
+            return false;
+        }
+        $(form).ajaxSubmit({
+            async: false,
+            complete: function (XHR, TS){
+                if (XHR.responseText == 'success'){
+                    window.location.href = '/';
+                }
+                else if (XHR.responseText == 'exist'){
+                    alert('用户名或密码错误！');
+                    loadRndImg(0);
+                }
+                else if (XHR.responseText == 'verification'){
+                    alert('验证码错误，请重新输入！');
+                    loadRndImg(0);
+                }
+            }
+        });
+        return false;
     }
 
     function checkSignUp(form) {
@@ -128,6 +186,10 @@
                 }
                 else if (XHR.responseText == 'exist'){
                     alert('该用户名已存在，请换其他用户名！');
+                }
+                else if (XHR.responseText == 'verification'){
+                    alert('验证码错误，请重新输入！');
+                    loadRndImg(1);
                 }
             }
         });
@@ -158,15 +220,21 @@
             </div>
             <!-- 顶部导航条右侧栏 -->
             <div class="my-navbar-right">
+                <% if (userName != '') {%>
+                <a href="/signOut">
+                    <div><span class="badge"><% if (lan == 'eng') { %>Sign out<% } else { %>登出<% } %></span></div>
+                </a>
+                <% } else { %>
+                <a href="javascript:void(0);" onclick="signInOrUp();">
+                    <div><span class="badge"><% if (lan == 'eng') { %>Sign in/Sign up<% } else { %>登录/注册<% } %></span></div>
+                </a>
+                <% } %>
                 <a href="http://202.121.178.141/MDPA/index.html">
                     <div><span class="badge"><% if (lan == 'eng') { %>Old version<% } else { %>回到旧版<% } %></span></div>
                 </a>
                 <!--a href="javascript:void(0);" onclick="setFavor('Genotype Phenotype Search', window.location.host);">
                     <div><span class="badge"><% if (lan == 'eng') { %>Add to favourites<% } else { %>加入收藏<% } %></span></div>
                 </a-->
-                <a href="javascript:void(0);" onclick="signInOrUp();">
-                    <div><span class="badge"><% if (lan == 'eng') { %>Sign in/Sign up<% } else { %>登录/注册<% } %></span></div>
-                </a>
                 <a href="http://transmed.sjtu.edu.cn/yale.html">
                     <div><span class="badge"><% if (lan == 'eng') { %>Contact us<% } else { %>联系我们<% } %></span></div>
                 </a>
@@ -190,12 +258,14 @@
             <div class="row nav-mod">
                 <% var navModule = typeof navMod == 'undefined' ? -1 : navMod;%>
                 <div class="col-md-3 nav-module <%-navModule==0 ? 'nav-module-selected' : ''%>">
-                    <a href="/index">症状诊断</a>
+                    <a href="/index"><% if (lan == 'eng') { %>Pheno diagnosis<% } else { %>症状诊断<% } %></a>
                 </div>
                 <div class="col-md-3 nav-module <%-navModule==1 ? 'nav-module-selected' : ''%>">
-                    <a href="/gene_diag">基因诊断</a>
+                    <a href="/gene_diag"><% if (lan == 'eng') { %>Geno diagnosis<% } else { %>登录<% } %></a>
                 </div>
-                <div class="col-md-3 nav-module">综合诊断</div>
-                <div class="col-md-3 nav-module">病例库</div>
+                <div class="col-md-3 nav-module"><% if (lan == 'eng') { %>Synthetical diagnosis<% } else { %>综合诊断<% } %></div>
+                <div class="col-md-3 nav-module">
+                    <a href="/database"><% if (lan == 'eng') { %>Case database<% } else { %>病例库<% } %></a>
+                </div>
             </div>
             <br/>
