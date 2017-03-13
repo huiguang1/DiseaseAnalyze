@@ -72,3 +72,9 @@ span.dynatree-selected a { font-style: normal; color: black; }
 /* gene page
 -------------------------------------------------- */
 #detail-gene { margin: 0; }
+
+/* database page
+-------------------------------------------------- */
+.row-search { height: 50px; }
+.input-search { height: 100%; }
+#search-case { height: 100%; background-color: #00c0ef }

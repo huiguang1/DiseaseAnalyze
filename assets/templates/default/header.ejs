@@ -19,6 +19,7 @@
 
 
     <link rel="stylesheet" href="<%=static_dir%>/bootstrap-3.3.5-dist/css/bootstrap.css"/>
+    <script src="<%=static_dir%>/js/angular.min.js"></script>
     <script src="<%=static_dir%>/js/jquery-1.12.4.js"></script>
     <script src="<%=static_dir%>/js/jquery.form.js"></script>
 
@@ -48,7 +49,7 @@
     <![endif]-->
 </head>
 
-<body>
+<body ng-app="myApp" ng-controller="myCtrl">
 
 <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -221,8 +222,8 @@
             <!-- 顶部导航条右侧栏 -->
             <div class="my-navbar-right">
                 <% if (userName != '') {%>
-                <a href="/signOut">
-                    <div><span class="badge"><% if (lan == 'eng') { %>Sign out<% } else { %>登出<% } %></span></div>
+                <a href="/my_request">
+                    <div><span class="badge"><% if (lan == 'eng') { %>My centre<% } else { %>个人中心<% } %></span></div>
                 </a>
                 <% } else { %>
                 <a href="javascript:void(0);" onclick="signInOrUp();">
@@ -258,13 +259,13 @@
             <div class="row nav-mod">
                 <% var navModule = typeof navMod == 'undefined' ? -1 : navMod;%>
                 <div class="col-md-3 nav-module <%-navModule==0 ? 'nav-module-selected' : ''%>">
-                    <a href="/index"><% if (lan == 'eng') { %>Pheno diagnosis<% } else { %>症状诊断<% } %></a>
+                    <a href="/index"><% if (lan == 'eng') { %>Pheno-diagnosis<% } else { %>症状诊断<% } %></a>
                 </div>
                 <div class="col-md-3 nav-module <%-navModule==1 ? 'nav-module-selected' : ''%>">
-                    <a href="/gene_diag"><% if (lan == 'eng') { %>Geno diagnosis<% } else { %>登录<% } %></a>
+                    <a href="#"><% if (lan == 'eng') { %>Geno-diagnosis<% } else { %>基因诊断<% } %></a>
                 </div>
-                <div class="col-md-3 nav-module"><% if (lan == 'eng') { %>Synthetical diagnosis<% } else { %>综合诊断<% } %></div>
-                <div class="col-md-3 nav-module">
+                <div class="col-md-3 nav-module"><% if (lan == 'eng') { %>Syn-diagnosis<% } else { %>综合诊断<% } %></div>
+                <div class="col-md-3 nav-module <%-navModule==3 ? 'nav-module-selected' : ''%>">
                     <a href="/database"><% if (lan == 'eng') { %>Case database<% } else { %>病例库<% } %></a>
                 </div>
             </div>

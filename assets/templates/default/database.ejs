@@ -1,0 +1,89 @@
+<% include ./header.ejs %>
+<script>
+    var app = angular.module('myApp', []);
+    app.controller('myCtrl', function($scope) {
+        $scope.searchCase = function () {
+            $.ajax({
+                url : "/searchCase",
+                async: false,
+                data : {
+                    searched: $scope.searchedDisease
+                },
+                type: 'GET',
+                success: function( cases ) {
+                    $scope.cases = cases;
+                },
+                error: function() {
+                    alert("网络连接异常");
+                }
+            });
+        };
+        $scope.viewRequest = function(caseId, owner){
+            if (confirm("是否要向\""+owner+"\"发出查看该病例的申请？")) {
+                $.ajax({
+                    url: "/request_view",
+                    async: false,
+                    data: {
+                        id: caseId
+                    },
+                    type: 'POST',
+                    success: function (respond) {
+                        if (respond == "success") {
+                            alert("申请成功，请耐心等待结果。");
+                        } else if (respond == "pending") {
+                            alert("您的申请还未处理，请耐心等待。");
+                        } else if (respond == "error") {
+                            alert("未知错误");
+                        }
+                    },
+                    error: function () {
+                        alert("网络连接异常");
+                    }
+                });
+            }
+        };
+        $scope.searchCase();
+    });
+</script>
+<div class="row row-search">
+    <input class="col-md-11 input-search" placeholder="请输入症状以进行检索" ng-model="searchedDisease">
+    <button class="btn btn-default col-md-1" id="search-case" ng-click="searchCase()">搜索</button>
+</div>
+<table class="table table-bordered table-striped dataTable" role="grid">
+    <thead>
+    <tr role="row">
+        <th class="col-md-1">
+            ID
+        </th>
+        <th class="col-md-7" title="<% if (lan == 'eng') { %>All the symptoms of this case<% } else { %>该病例的所有症状<% } %>">
+            <% if (lan == 'eng') { %>Symptoms<% } else { %>症状<% } %>
+        </th>
+        <th class="col-md-1">
+            <% if (lan == 'eng') { %>Owner<% } else { %>所有者<% } %>
+        </th>
+        <th class="col-md-1" title="<% if (lan == 'eng') { %>Public or private<% } else { %>公开或私有<% } %>">
+            <% if (lan == 'eng') { %>Authorization<% } else { %>权限<% } %>
+        </th>
+        <th class="col-md-2" title="<% if (lan == 'eng') { %>View a case, or get permission to view it<% } else { %>查看症状，或获取查看权限<% } %>">
+            <% if (lan == 'eng') { %>Operation<% } else { %>操作<% } %>
+        </th>
+    </tr>
+    </thead>
+    <tbody id="tableBody">
+        <tr role="row" class="color-palette" ng-repeat="case in cases">
+            <td>{{ case.id }}</td>
+            <td>{{ case.Phenotype }}</td>
+            <td>{{ case.Owner }}</td>
+            <td>{{ case.View == 'public' ? '公开' : '私有' }}</td>
+            <% if (userName == '') { %>
+            <td>请登录以进行操作</td>
+            <% } else { %>
+            <td ng-if="case.View == 'public' || case.viewable == 'yes'"><a target="_blank" ng-href="{{ '/watch_case/' + case.id }}">查看该症状</a></td>
+            <td ng-if="case.View == 'private' && case.viewable != 'yes'">
+                <a href="javascript: void(0);" ng-click="viewRequest(case.id, case.Owner)">申请查看权限</a>
+            </td>
+            <% } %>
+        </tr>
+    </tbody>
+</table>
+<% include ./footer.ejs %>

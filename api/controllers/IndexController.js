@@ -1,7 +1,7 @@
 var Promise = require('es6-promise').Promise;
 var Crypto = require('crypto');
 
-var pageSize = 12;
+var pageSize = 10;
 
 /**
  * Construct an array of [ 1, 2, ..., n ]
@@ -69,6 +69,7 @@ module.exports = {
             var idnName = hpo[i].split('$');
             res.locals.searched[i] = idnName;
         }
+        res.locals.navMod = 0;
 
         return quickTemplate(req, res);
 
@@ -384,10 +385,10 @@ module.exports = {
     },
 
     signIn: function(req, res, next) {
-        //sign out
-        if (typeof req.param("name") == 'undefined'){
+        if (typeof req.param("name") == 'undefined'){ //sign out
             req.session.userName = '';
             res.locals.view = "index";
+            res.locals.navMod = 0;
             return quickTemplate(req, res);
         }
 
@@ -414,6 +415,220 @@ module.exports = {
             res.send('error');
         });
     },
+
+    database: function(req, res, next) {
+        res.locals.view = "database";
+        res.locals.navMod = 3;
+        return quickTemplate(req, res);
+    },
+
+    searchCase: function(req, res, next) {
+        var searched = req.param("searched") ? req.param("searched").trim() : '';
+        //var page = req.param("page") ? parseInt(req.param("page").trim()) : 1;
+        //var skip = (page - 1) * pageSize;
+        Case.find({
+            //skip: skip,
+            //limit: pageSize,
+            Phenotype: {
+                like: "%" + searched + "%"
+            },
+            sort: "id DESC"
+        }).then(function (cases) {
+            res.locals.cases = cases;
+            if (typeof req.session.userName == 'undefined' || req.session.userName == '') {
+                return Promise.reject('user');
+            }
+            var casesId = [];
+            for (var i = 0;i < cases.length;i++){
+                casesId[i] = { case: cases[i].id };
+            }
+            return Request.find({
+                or: casesId,
+                requester: req.session.userName,
+                status: 'accepted'
+            });
+        }).then(function (requests){
+            for (var i = 0;i < res.locals.cases.length;i++){
+                if (res.locals.cases[i].Owner == req.session.userName){
+                    res.locals.cases[i].viewable = 'yes';
+                }
+                for (var j = 0;j < requests.length;j++){
+                    if (requests[j].case == res.locals.cases[i].id){
+                        res.locals.cases[i].viewable = 'yes';
+                        break;
+                    }
+                }
+            }
+            res.send(res.locals.cases);
+        }, function(err){
+            if (err == 'user')
+                res.send(res.locals.cases);
+            else
+                next(err);
+        });
+    },
+
+    watchCase: function(req, res, next) {
+        if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
+            res.send('login');
+            return;
+        }
+        var id = req.param("id").trim();
+        Case.findOne({
+            id: id
+        }).then(function (aCase) {
+            res.locals.aCase = aCase;
+            res.locals.view = 'watch_case';
+            res.locals.navMod = 3;
+            if (aCase.View == 'public' || aCase.Owner == req.session.userName){
+                return Promise.reject('pass');
+            }
+            return Request.find({
+                case: id,
+                requester: req.session.userName,
+                status: 'accepted'
+            });
+        }).then(function (requests){
+            if (requests.length < 1){
+                res.send('permission');
+                return;
+            }
+            return quickTemplate(req, res);
+        }, function(err){
+            if (err == 'pass'){
+                return quickTemplate(req, res);
+            }
+            else {
+                next(err);
+            }
+        });
+    },
+
+    requestView: function(req, res, next) {
+        if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
+            res.send('login');
+            return;
+        }
+        var id = req.body.id;
+        Request.find({
+            case: id,
+            requester: req.session.userName,
+            status: { '!': 'rejected' }
+        }).then(function(requests){
+            console.log(requests);
+            if (requests.length > 0){
+                return Promise.reject('pending');
+            }
+            return Request.create({
+                requester: req.session.userName,
+                status: 'pending',
+                case: id
+            })
+        }).then(function(){
+            res.send('success')
+        }, function(err) {
+            if (err == 'pending'){
+                res.send('pending')
+            } else {
+                console.log(err);
+                res.send('error')
+            }
+        });
+    },
+
+    myRequest: function(req, res, next) {
+        if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
+            res.send('login');
+            return;
+        }
+        Case.find({
+            Owner: req.session.userName
+        }).then(function(cases){
+            res.locals.cases = cases;
+            res.locals.requests = [];
+            if (cases.length < 1){
+                return Promise.reject('cases');
+            }
+            var caseId = [];
+            for (var i = 0;i < cases.length;i++) {
+                caseId[i] = { case: cases[i].id };
+            }
+            return Request.find({
+                or: caseId
+            })
+        }).then(function(requests){
+            res.locals.requests = requests;
+            res.locals.view = 'my_request';
+            return quickTemplate(req, res);
+        }, function(err){
+            if (err == 'cases') {
+                res.locals.view = 'my_request';
+                return quickTemplate(req, res);
+            }
+            next(err);
+        });
+    },
+
+    approveRequest: function(req, res, next) {
+        if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
+            res.send('login');
+            return;
+        }
+        var id = req.body.id;
+        var isAccept = req.body.isAccept;
+        Request.update({ id: id }, {
+            status: isAccept == 'true' ? 'accepted' : 'rejected'
+        }).then(function (){
+            res.send('success');
+        }, function (err) {
+            next(err);
+        });
+    },
+
+    changePermission: function(req, res, next) {
+        if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
+            res.send('login');
+            return;
+        }
+        var id = req.body.id;
+        var permission = req.body.permission;
+        Case.update({ id: id }, {
+            View: permission
+        }).then(function (){
+            res.send('success');
+        }, function (err) {
+            next(err);
+        });
+    },
+
+
+    /*test: function(req, res, next) {
+        User.find({}).then(function (users){
+            console.log('then1');
+            return Promise.reject('Reject!');
+        }, function (err) {
+            console.log('err1: '+ err);
+            res.locals.view = 'index';
+            return quickTemplate(req, res);
+        }).then(function(input){
+            console.log('input1: ' + input);
+            console.log('then2');
+            resolve('Resolve!');
+        }, function (err) {
+            console.log('err2: '+ err);
+            res.locals.view = 'index';
+            return quickTemplate(req, res);
+        }).then(function(input){
+            console.log('input2: ' + input);
+            res.locals.view = 'index';
+            return quickTemplate(req, res);
+        }, function (err) {
+            console.log('err3: '+ err);
+            res.locals.view = 'index';
+            return quickTemplate(req, res);
+        });
+
+    },*/
 
     /**
      * 详情页 

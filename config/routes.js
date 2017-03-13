@@ -85,7 +85,44 @@ module.exports.routes = {
   '/database': {
       controller: 'IndexController',
       action: 'database'
-  }
+  },
+
+  '/watch_case/:id': {
+      controller: 'IndexController',
+      action: 'watchCase'
+  },
+
+  '/searchCase': {
+      controller: 'IndexController',
+      action: 'searchCase'
+  },
+
+  '/request_view': {
+      controller: 'IndexController',
+      action: 'requestView'
+  },
+
+    '/my_request': {
+        controller: 'IndexController',
+        action: 'myRequest'
+    },
+
+    '/approve_request' : {
+        controller: 'IndexController',
+        action: 'approveRequest'
+    },
+
+
+    '/change_permission' : {
+        controller: 'IndexController',
+        action: 'changePermission'
+    }
+
+    //测试用，上线时删除
+  /*'/test': {
+      controller: 'IndexController',
+      action: 'test'
+  }*/
 
   /***************************************************************************
    *                                                                          *
