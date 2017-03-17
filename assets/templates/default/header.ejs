@@ -267,14 +267,14 @@
             <div class="row nav-mod">
                 <% var navModule = typeof navMod == 'undefined' ? -1 : navMod;%>
                 <div class="col-md-3 nav-module <%-navModule==0 ? 'nav-module-selected' : ''%>">
-                    <a href="/index"><% if (lan == 'eng') { %>Pheno-diagnosis<% } else { %>症状诊断<% } %></a>
+                    <a href="/index"><b><% if (lan == 'eng') { %>Pheno-diagnosis<% } else { %>症状诊断<% } %></b></a>
                 </div>
                 <div class="col-md-3 nav-module <%-navModule==1 ? 'nav-module-selected' : ''%>">
-                    <a href="#"><% if (lan == 'eng') { %>Geno-diagnosis<% } else { %>基因诊断<% } %></a>
+                    <a href="#"><b><% if (lan == 'eng') { %>Geno-diagnosis<% } else { %>基因诊断<% } %></b></a>
                 </div>
-                <div class="col-md-3 nav-module"><% if (lan == 'eng') { %>Syn-diagnosis<% } else { %>综合诊断<% } %></div>
+                <div class="col-md-3 nav-module"><b><% if (lan == 'eng') { %>Syn-diagnosis<% } else { %>综合诊断<% } %></b></div>
                 <div class="col-md-3 nav-module <%-navModule==3 ? 'nav-module-selected' : ''%>">
-                    <a href="/database"><% if (lan == 'eng') { %>Case database<% } else { %>病例库<% } %></a>
+                    <a href="/database"><b><% if (lan == 'eng') { %>Case database<% } else { %>病例库<% } %></b></a>
                 </div>
             </div>
             <br/>
