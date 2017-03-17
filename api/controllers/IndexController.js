@@ -1,6 +1,6 @@
 var Promise = require('es6-promise').Promise;
 var Crypto = require('crypto');
-var mailer = require('../services/mailer.js');
+var mailer = require('../services/SMTPmailer.js');
 
 var pageSize = 10;
 
