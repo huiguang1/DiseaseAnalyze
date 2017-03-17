@@ -116,6 +116,16 @@ module.exports.routes = {
     '/change_permission' : {
         controller: 'IndexController',
         action: 'changePermission'
+    },
+
+    '/upload' : {
+        controller: 'IndexController',
+        action: 'upload'
+    },
+
+    '/verify' : {
+        controller: 'IndexController',
+        action: 'verify'
     }
 
     //测试用，上线时删除

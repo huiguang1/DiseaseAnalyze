@@ -19,6 +19,10 @@ module.exports = {
 		authorization: {
 			type: 'integer',
 			columnName: 'Authorization'
+		},
+		email: {
+			type: 'string',
+			columnName: 'Email'
 		}
 	},
 

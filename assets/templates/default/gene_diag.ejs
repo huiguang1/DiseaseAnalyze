@@ -124,6 +124,7 @@
     </form>
 </div>
 <div class="row">
+    <script src="<%=static_dir%>/js/caseUploader.js"></script>
     <script>
         var geneFiles = [];
         var chromosomeEntries = [];
@@ -183,6 +184,62 @@
     <div class="row">
         基因变异文件：
         <button onclick="newGene()">新建</button>
+        <button onclick="upload()">上传</button>
+        <input type="file" multiple="multiple" name="file" id="file">
+        <div id="testupload"></div>
+        <script>
+            function upload(){
+                $('#testupload').caseUploader();
+                return;
+
+                alert(1);
+                var file = $('#file')[0].files[0];
+                /*var str = '';
+                for (var i in file)
+                {
+                    if (typeof file[i] != 'function')
+                        str += i + ': ' + file[i] + '\n';
+                }
+                alert(str);*/
+                var reader = new FileReader();
+                reader.onloadstart = function() {
+                    var fData = new FormData();
+
+
+                    var blob = file.slice(0, 32);
+                    var str = '';
+                    for (var i in blob)
+                    {
+                        if (typeof blob[i] != 'function')
+                            str += i + ': ' + blob[i] + '\n';
+                    }
+                    alert(str);
+
+                    fData.append("name",file.name);
+                    fData.append("size",file.size);
+                    fData.append("type",file.type);
+                    fData.append("file",file.slice(0, 32));
+
+
+                    $.ajax({
+                        url: 'upload',
+                        type: 'POST',
+                        data: fData,
+                        processData: false,
+                        contentType: false,
+                        cache: false,
+                        success: function (data) {
+                            alert(data);
+                        },
+                        error: function (err){
+                            alert(err);
+                        }
+                    });
+                }
+                reader.readAsText(file);
+
+            }
+        </script>
     </div>
     <table id="geneTable" class="table table-bordered table-striped dataTable" role="grid">
         <thead>

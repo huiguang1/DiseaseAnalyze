@@ -70,20 +70,28 @@
                                 <input name="name">
                             </label>
                             <label class="col-md-6"><% if (lan == 'eng') { %>Password: <% } else { %>密码：<% } %>
-                                <input name="password" type="password"><% if (lan == 'eng') { %>More than 6 characters<% } else { %>请输入6位以上的密码<% } %>
+                                <input name="password" type="password" placeholder="<% if (lan == 'eng') { %>More than 6 characters<% } else { %>请输入6位以上的密码<% } %>">
+                            </label>
+                        </div>
+                        <div class="row">
+                            <label class="col-md-6"><% if (lan == 'eng') { %>Password again: <% } else { %>再次输入密码：<% } %>
+                                <input name="verifyPassword" type="password">
+                            </label>
+                            <label class="col-md-6">Email
+                                <input name="email" type="email">
                             </label>
                         </div>
                         <div class="row">
                             <label class="col-md-6"><% if (lan == 'eng') { %>Verification: <% } else { %>验证码：<% } %>
                                 <input name="verification">
                             </label>
-                            <label class="col-md-6"><% if (lan == 'eng') { %>Password again: <% } else { %>再次输入密码：<% } %>
-                                <input name="verifyPassword" type="password">
-                            </label>
+                            <div class="col-md-6">
+                                <br/>
+                                <img id="rnd-img-1" src="" alt="验证码">
+                                <a href="javascript: void(0)" onclick="loadRndImg(1);"><% if (lan == 'eng') { %>Reload image<% } else { %>重新加载图像<% } %></a>
+                                <button class="btn btn-default pull-right" type="submit"><% if (lan == 'eng') { %>Submit<% } else { %>提交<% } %></button>
+                            </div>
                         </div>
-                        <img id="rnd-img-1" src="" alt="验证码">
-                        <a href="javascript: void(0)" onclick="loadRndImg(1);"><% if (lan == 'eng') { %>Reload image<% } else { %>重新加载图像<% } %></a>
-                        <button class="btn btn-default pull-right" type="submit"><% if (lan == 'eng') { %>Submit<% } else { %>提交<% } %></button>
                     </form>
                 </div>
                 <div class="modal-body tab-pane active" id="bodySignIn">
@@ -182,11 +190,11 @@
             async: false,
             complete: function (XHR, TS){
                 if (XHR.responseText == 'success'){
-                    alert('恭喜，注册成功！');
+                    alert('注册信息已保存，请在十分钟内登录邮箱进行验证。');
                     window.location.href = '/';
                 }
                 else if (XHR.responseText == 'exist'){
-                    alert('该用户名已存在，请换其他用户名！');
+                    alert('该用户名或Email地址已存在，请更换！');
                 }
                 else if (XHR.responseText == 'verification'){
                     alert('验证码错误，请重新输入！');

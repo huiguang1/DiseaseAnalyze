@@ -1,5 +1,6 @@
 var Promise = require('es6-promise').Promise;
 var Crypto = require('crypto');
+var mailer = require('../services/mailer.js');
 
 var pageSize = 10;
 
@@ -29,6 +30,18 @@ function quickTemplate(req, res) {
     } else {
         res.locals.userName = '';
     }
+    return res.templet({});
+}
+
+function errTemplate(req, res, err) {
+    res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
+    if (typeof req.session.userName != 'undefined'){
+        res.locals.userName = req.session.userName;
+    } else {
+        res.locals.userName = '';
+    }
+    res.locals.err = err;
+    res.locals.view = 'error';
     return res.templet({});
 }
 
@@ -366,21 +379,53 @@ module.exports = {
     signUp: function(req, res, next) {
         var usrName = req.param("name").trim();
         var psw = myMD5(req.param("password").trim());
+        var email = req.param("email").trim();
         var verification = req.param("verification").trim();
         if (verification != req.session.login.randomcode){
             res.send('verification');
             return;
         }
 
+        User.find({
+            or: [{ name: usrName }, { email: email } ]
+        }).then(function(users){
+            if (users.length > 0) {
+                res.send('exist');
+                return;
+            }
+            var secret = myMD5((new Date()).toTimeString() + 'gps');
+            req.session.signUp = {
+                usrName: usrName,
+                psw: psw,
+                email: email,
+                md5: secret
+            };
+            mailer.send(email,'<p>您正在验证自己的注册，请点击以下链接进行验证：</p>' +
+                '<a href="http://' + req.host +'/verify?pass='+secret+'">请点击我</a>' +
+                '<p>请注意，该链接在10分钟后，或清除浏览器数据后将会失效，届时将需要重新注册。</p>');
+            res.send('success');
+        });
+    },
+
+    verify: function(req, res, next) {
+        if (typeof req.param("pass") == 'undefined'){
+            return errTemplate('链接无效。');
+        }
+        var secret = req.param("pass").trim();
+        if (typeof req.session.signUp == 'undefined' || secret != req.session.signUp.md5){
+            return errTemplate('链接过期，请重新注册。');
+        }
         User.create({
-            name: usrName,
-            password: psw,
-            authorization: 0
+            name: req.session.signUp.usrName,
+            password: req.session.signUp.psw,
+            authorization: 0,
+            email: req.session.signUp.email
         }).then(function (user) {
             req.session.userName = user.name;
-            res.send('success');
+            res.locals.view = 'index';
+            return quickTemplate(req, res);
         }, function(err){
-            res.send('exist');
+            return errTemplate('抱歉，该用户已存在，请登录或重新注册。');
         });
     },
 
@@ -598,6 +643,15 @@ module.exports = {
             res.send('success');
         }, function (err) {
             next(err);
+        });
+    },
+
+    upload: function(req, res, next) {
+        console.log(req.body);
+        req.file('file').upload(function (err, uploadedFiles){
+            if (err) return res.send(500, err);
+            console.log(uploadedFiles);
+            return res.send(200, uploadedFiles);
         });
     },
 
