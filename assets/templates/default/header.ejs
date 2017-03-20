@@ -267,7 +267,7 @@
             <div class="row nav-mod">
                 <% var navModule = typeof navMod == 'undefined' ? -1 : navMod;%>
                 <div class="col-md-3 nav-module <%-navModule==0 ? 'nav-module-selected' : ''%>">
-                    <a href="/index"><b><% if (lan == 'eng') { %>Pheno-diagnosis<% } else { %> userName:<%-userName%>症状诊断<% } %></b></a>
+                    <a href="/index"><b><% if (lan == 'eng') { %>Pheno-diagnosis<% } else { %> userName:<%-userName%><% } %></b></a>
                 </div>
                 <div class="col-md-3 nav-module <%-navModule==1 ? 'nav-module-selected' : ''%>">
                     <a href="#"><b><% if (lan == 'eng') { %>Geno-diagnosis<% } else { %>基因诊断<% } %></b></a>
