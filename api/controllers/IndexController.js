@@ -401,7 +401,7 @@ module.exports = {
                 md5: secret
             };
             mailer.send(email,'<p>您正在验证自己的注册，请点击以下链接进行验证：</p>' +
-                '<a href="http://' + req.host +'/verify?pass='+secret+'">请点击我</a>' +
+                '<a href="' + req.baseUrl +'/verify?pass='+secret+'">请点击我</a>' +
                 '<p>请注意，该链接在10分钟后，或清除浏览器数据后将会失效，届时将需要重新注册。</p>');
             res.send('success');
         });
@@ -409,11 +409,11 @@ module.exports = {
 
     verify: function(req, res, next) {
         if (typeof req.param("pass") == 'undefined'){
-            return errTemplate('链接无效。');
+            return errTemplate(req,res,'链接无效。');
         }
         var secret = req.param("pass").trim();
         if (typeof req.session.signUp == 'undefined' || secret != req.session.signUp.md5){
-            return errTemplate('链接过期，请重新注册。');
+            return errTemplate(req,res,'链接过期，请重新注册。');
         }
         User.create({
             name: req.session.signUp.usrName,
@@ -422,10 +422,9 @@ module.exports = {
             email: req.session.signUp.email
         }).then(function (user) {
             req.session.userName = user.name;
-            res.locals.view = 'index';
-            return quickTemplate(req, res);
+            return errTemplate(req, res, '恭喜，注册成功！您可以在右上角“个人中心”处查看信息。')
         }, function(err){
-            return errTemplate('抱歉，该用户已存在，请登录或重新注册。');
+            return errTemplate(req,res,'抱歉，该用户已存在，请登录或重新注册。');
         });
     },
 
