@@ -671,8 +671,9 @@ module.exports = {
         }
         req.body.Owner = req.session.userName;
         Case.create(req.body).then(function(aCase){
-            res.locals.view = 'my_request';
-            return quickTemplate(req, res);
+            res.send('success');
+        }, function(err){
+            res.send('error');
         });
     },
 

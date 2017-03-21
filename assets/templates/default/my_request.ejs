@@ -6,9 +6,9 @@
 
     });
 </script>
-<a href="/signOut" class="pull-right">点此登出</a>
+<a href="/signOut" class="pull-right"><%-lan=='eng'?'Click to log out' : '点此登出'%></a>
 <% if (requests.length > 0) { %>
-<h3>您接受到的查看病例申请：</h3>
+<h3><%-lan=='eng'?'Requests you have received: ' : '您接受到的查看病例申请：'%></h3>
 <table class="table table-bordered table-striped dataTable" role="grid">
     <thead>
     <tr role="row">
@@ -56,10 +56,8 @@
 <% } else { %>
 <h3>您目前没有接收到查看病例申请。</h3>
 <% } %>
-<!--a href="new_case"-->
-<a href="#"><%-lan=='eng'?'Add a new case':'新建病例'%></a>
 <% if (cases.length > 0) { %>
-<h3>您管理的病例：</h3>
+<h3><%-lan=='eng'?'Your cases':'您管理的病例'%>（<a href="new_case"><%-lan=='eng'?'Add a new case':'新建病例'%></a>）：</h3>
 <table class="table table-bordered table-striped dataTable" role="grid">
     <thead>
     <tr role="row">
@@ -82,14 +80,14 @@
         <td><% if (lan == 'eng') { %>Private<% } else { %>私有的<% } %></td>
         <td>
             <a href="javascript: void(0);" onclick="changePermission('public', '<%-cases[i].id%>')">
-                <% if (lan == 'eng') { %>Change into public<% } else { %>转为公开<% } %>
+                <% if (lan == 'eng') { %>Switch to public<% } else { %>转为公开<% } %>
             </a>
         </td>
         <% } else { %>
         <td><% if (lan == 'eng') { %>Public<% } else { %>公开的<% } %></td>
         <td>
             <a href="javascript: void(0);" onclick="changePermission('private', '<%-cases[i].id%>')">
-                <% if (lan == 'eng') { %>Change into private<% } else { %>转为私有<% } %>
+                <% if (lan == 'eng') { %>Switch to private<% } else { %>转为私有<% } %>
             </a>
         </td>
         <% } %>
@@ -99,7 +97,7 @@
 </table>
 
 <% } else { %>
-<h3>您目前没有管理任何病例。</h3>
+<h3><a href="new_case"><%-lan=='eng'?'Add a new case':'新建病例'%></a></h3>
 <% } %>
 
 <script>

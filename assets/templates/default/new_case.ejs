@@ -1,7 +1,64 @@
 <% include ./header.ejs %>
 
 <div class="row">
-    <form class="form-horizontal col-sm-12" method="post" action="add_case">
+    <form class="form-horizontal col-sm-12" method="post" action="add_case" onsubmit="return newCase(this);">
+        <script type="text/javascript">
+                $(document).ready(function() {
+                    $("#sel_menu2").select2({
+                        multiple:true,
+                        placeholder: eng == 1 ? 'Please enter phenotype name or ID' : '请输入症状名或症状ID',
+                        ajax:
+                            {
+                                url:"http://202.121.178.141/cgi-bin/MDPA/SearchDB.cgi",
+                                dataType: 'json',
+                                delay: 600,
+                                contentType:"application/x-www-form-urlencoded;charset=UTF-8",
+                                data: function (params){
+                                    return {
+                                        q: params.term, // search term
+                                        page: params.page
+                                    };
+                                },
+                                processResults: function (data, page)
+                                {
+                                    return{
+                                        results: data.items
+                                    };
+                                },
+                                cache:true
+                            },
+                        escapeMarkup: function (markup)
+                        {
+                            //console.debug(markup)
+                            return markup;
+                        }, // let our custom formatter work
+                        minimumInputLength: 2,
+                        formatInputTooShort:  eng == 1 ? 'Please enter at least 2 characters' : "请输入至少2个字符以进行检索",
+                        //maximumInputLength: 40,
+                        templateResult:formatRepo,
+                        templateSelection:formatRepoSelection
+                    });
+                });
+                function formatRepo(repo)
+                {
+                    if (repo.loading) return repo.text;
+                    repo.text = repo.name;
+                    var markup = '<option class="select2-option-click" value="'+repo.text+'">'+ repo.id+'|'+repo.text+'</option>';
+                    repo.id = repo.text;
+                    return markup;
+                }
+
+                function formatRepoSelection(repo){
+                    repo.selected = true;
+                    repo.value = repo.name;
+                    repo.name = repo.text;
+                    if(repo.id == null || repo.name == ""){
+                        repo.id = 'Please type items'
+                        repo.name = repo.text
+                    }
+                    return repo.text;
+                }
+            </script>
         <div class="row">
             <div class="form-group col-sm-6">
                 <label class="col-sm-4 control-label"><%-lan=='eng'?'Permission':'浏览权限'%></label>
@@ -25,9 +82,11 @@
         </div>
         <div class="row">
             <div class="form-group col-sm-6">
-                <label class="col-sm-4 control-label"><%-lan=='eng'?'Original Hospital':'来源医院'%></label>
+                <label class="col-sm-4 control-label"><%-lan=='eng'?'Source hospital':'来源医院'%></label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" name="CaseOrigin">
+                    <select name="CaseOrigin" class="form-control">
+                        <option value="上海市儿童医院" selected>上海市儿童医院</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -49,9 +108,10 @@
         </div>
         <div class="row">
             <div class="form-group col-sm-6">
-                <label class="col-sm-4 control-label"><%-lan=='eng'?'Phenotype':'表型异常'%></label>
+                <label class="col-sm-4 control-label"><%-lan=='eng'?'Phenotype':'表型异常'%>*</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" name="Phenotype" required>
+                    <select id="sel_menu2" name="Phenotype" multiple="multiple" class="form-control" required>
+                    </select>
                 </div>
             </div>
         </div>
@@ -68,11 +128,31 @@
             <hr>
             <div class="form-group col-sm-12">
                 <div class="col-sm-offset-2 col-sm-8">
-                    <button type="submit" class="btn btn-primary">提 交</button>
+                    <button type="submit" class="btn btn-primary"><%-lan=='eng'?'Submit':'提 交'%></button>
                 </div>
             </div>
         </div>
     </form>
+    <script>
+        function newCase(form) {
+            $(form).ajaxSubmit({
+                async: false,
+                complete: function (XHR, TS){
+                    if (XHR.responseText == 'success'){
+                        alert('新建病例成功');
+                        window.location.href = '/my_request';
+                    }
+                    else if (XHR.responseText == 'error'){
+                        alert('病例创建失败');
+                    }
+                    else {
+                        alert('网络连接异常');
+                    }
+                }
+            });
+            return false;
+        }
+    </script>
 </div>
 
 <% include ./footer.ejs %>
