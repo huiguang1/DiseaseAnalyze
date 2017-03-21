@@ -400,20 +400,25 @@ module.exports = {
                 email: email,
                 md5: secret
             };
+            console.log(req.session.signUp);
             mailer.send(email,'<p>您正在验证自己的注册，请点击以下链接进行验证：</p>' +
                 '<a href="' + req.baseUrl +'/verify?pass='+secret+'">请点击我</a>' +
                 '<p>请注意，该链接在10分钟后，或清除浏览器数据后将会失效，届时将需要重新注册。</p>');
-            res.send('success');
+            //res.send('success');
+            res.send(req.session.signUp);
         });
     },
 
     verify: function(req, res, next) {
+        console.log(req.session.signUp);
+
         if (typeof req.param("pass") == 'undefined'){
             return errTemplate(req,res,'链接无效。');
         }
         var secret = req.param("pass").trim();
+        console.log(secret);
         if (typeof req.session.signUp == 'undefined' || secret != req.session.signUp.md5){
-            return errTemplate(req,res,'链接过期，请重新注册。');
+            return errTemplate(req,res,'//'+secret+'//链接过期，请重新注册。session.signUp: '+req.session.signUp);
         }
         User.create({
             name: req.session.signUp.usrName,
@@ -651,6 +656,27 @@ module.exports = {
             if (err) return res.send(500, err);
             console.log(uploadedFiles);
             return res.send(200, uploadedFiles);
+        });
+    },
+
+    newCase: function(req, res , next) {
+        if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
+            res.send('login');
+            return;
+        }
+        res.locals.view = 'new_case';
+        return quickTemplate(req, res);
+    },
+
+    addCase: function(req, res , next) {
+        if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
+            res.send('login');
+            return;
+        }
+        req.body.Owner = req.session.userName;
+        Case.create(req.body).then(function(aCase){
+            res.locals.view = 'my_request';
+            return quickTemplate(req, res);
         });
     },
 

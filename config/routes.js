@@ -126,6 +126,16 @@ module.exports.routes = {
     '/verify' : {
         controller: 'IndexController',
         action: 'verify'
+    },
+
+    '/new_case' : {
+        controller: 'IndexController',
+        action: 'newCase'
+    },
+
+    '/add_case' : {
+        controller: 'IndexController',
+        action: 'addCase'
     }
 
     //测试用，上线时删除

@@ -34,10 +34,10 @@
         <% if (requests[i].status == 'pending') { %>
         <td><% if (lan == 'eng') { %>Pending<% } else { %>待审批<% } %></td>
         <td>
-            <a href="javascript: void(0);" onclick="approveRequest(true, <%-requests[i].id%>, <%-requests[i].requester%>)">
+            <a href="javascript: void(0);" onclick="approveRequest(true, '<%-requests[i].id%>', '<%-requests[i].requester%>')">
                 <% if (lan == 'eng') { %>Accept<% } else { %>通过<% } %>
             </a>
-            <a href="javascript: void(0);" onclick="approveRequest(false, <%-requests[i].id%>, <%-requests[i].requester%>)">
+            <a href="javascript: void(0);" onclick="approveRequest(false, '<%-requests[i].id%>', '<%-requests[i].requester%>')">
                 <% if (lan == 'eng') { %>Reject<% } else { %>拒绝<% } %>
             </a>
         </td>
@@ -56,7 +56,8 @@
 <% } else { %>
 <h3>您目前没有接收到查看病例申请。</h3>
 <% } %>
-
+<!--a href="new_case"-->
+<a href="#"><%-lan=='eng'?'Add a new case':'新建病例'%></a>
 <% if (cases.length > 0) { %>
 <h3>您管理的病例：</h3>
 <table class="table table-bordered table-striped dataTable" role="grid">
@@ -80,14 +81,14 @@
         <% if (cases[i].View == 'private') { %>
         <td><% if (lan == 'eng') { %>Private<% } else { %>私有的<% } %></td>
         <td>
-            <a href="javascript: void(0);" onclick="changePermission('public', <%-cases[i].id%>)">
+            <a href="javascript: void(0);" onclick="changePermission('public', '<%-cases[i].id%>')">
                 <% if (lan == 'eng') { %>Change into public<% } else { %>转为公开<% } %>
             </a>
         </td>
         <% } else { %>
         <td><% if (lan == 'eng') { %>Public<% } else { %>公开的<% } %></td>
         <td>
-            <a href="javascript: void(0);" onclick="changePermission('private', <%-cases[i].id%>)">
+            <a href="javascript: void(0);" onclick="changePermission('private', '<%-cases[i].id%>')">
                 <% if (lan == 'eng') { %>Change into private<% } else { %>转为私有<% } %>
             </a>
         </td>

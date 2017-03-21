@@ -189,6 +189,8 @@
         $(form).ajaxSubmit({
             async: false,
             complete: function (XHR, TS){
+                alert(XHR.responseText);
+                alert(TS);
                 if (XHR.responseText == 'success'){
                     alert('注册信息已保存，请在十分钟内登录邮箱进行验证。');
                     window.location.href = '/';

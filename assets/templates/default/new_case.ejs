@@ -1,0 +1,78 @@
+<% include ./header.ejs %>
+
+<div class="row">
+    <form class="form-horizontal col-sm-12" method="post" action="add_case">
+        <div class="row">
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label"><%-lan=='eng'?'Permission':'浏览权限'%></label>
+                <div class="col-sm-8">
+                    <select name="View" class="form-control">
+                        <option value="public" selected><%-lan=='eng'?'public':'公开的'%></option>
+                        <option value="private"><%-lan=='eng'?'private':'私有的'%></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label"><%-lan=='eng'?'Sex':'性别'%></label>
+                <div class="col-sm-8">
+                    <select name="Sex" class="form-control">
+                        <option value="男" selected><%-lan=='eng'?'Male':'男'%></option>
+                        <option value="女"><%-lan=='eng'?'Female':'女'%></option>
+                        <option value="其他"><%-lan=='eng'?'Other':'其他'%></option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label"><%-lan=='eng'?'Original Hospital':'来源医院'%></label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" name="CaseOrigin">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label"><%-lan=='eng'?'Patient Name':'患者名字'%></label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" name="PatientName">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label"><%-lan=='eng'?'Patient Age':'患者年龄'%></label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" name="Age">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label"><%-lan=='eng'?'Phenotype':'表型异常'%></label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" name="Phenotype" required>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label"><%-lan=='eng'?'Genotype':'基因型异常'%></label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" name="Genotype">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <hr>
+            <div class="form-group col-sm-12">
+                <div class="col-sm-offset-2 col-sm-8">
+                    <button type="submit" class="btn btn-primary">提 交</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<% include ./footer.ejs %>
