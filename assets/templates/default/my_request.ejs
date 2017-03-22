@@ -142,4 +142,40 @@
         }
     }
 </script>
+
+<% if (searches.length > 0) { %>
+<h3><%-lan=='eng'?'Recent search history':'最近的搜索记录：'%></h3>
+<table class="table table-bordered table-striped dataTable" role="grid">
+    <thead>
+    <tr role="row">
+        <th class="col-md-4">
+            <% if (lan == 'eng') { %>Time<% } else { %>时间<% } %>
+        </th>
+        <th class="col-md-4">
+            <% if (lan == 'eng') { %>Phenotype<% } else { %>症状<% } %>
+        </th>
+        <th class="col-md-4">
+            <% if (lan == 'eng') { %>Operation<% } else { %>操作<% } %>
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    <% for (i = 0;i < searches.length;i++) { %>
+    <tr role="row" class="color-palette">
+        <td><%-searches[i].date.split('GMT')[0]%></td>
+        <td>
+            <% for (var j = 0;j < searches[i].searchedString.length;j++) { %>
+            <%-searches[i].searchedString[j][1]%>&nbsp;
+            <% } %>
+        </td>
+        <td>
+            <a href="/list?<% for (j = 0;j < searches[i].searchedString.length;j++) {%><%-'HPO='+searches[i].searchedString[j][0]+'$'+searches[i].searchedString[j][1]+'&'%><% } %>">
+                <% if (lan == 'eng') { %>Search again<% } else { %>重新搜索<% } %>
+            </a>
+        </td>
+    </tr>
+    <% } %>
+    </tbody>
+</table>
+<% } %>
 <% include ./footer.ejs %>

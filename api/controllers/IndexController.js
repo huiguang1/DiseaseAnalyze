@@ -1,6 +1,7 @@
 var Promise = require('es6-promise').Promise;
 var Crypto = require('crypto');
 var mailer = require('../services/SMTPmailer.js');
+var searchLogger = require('../services/searchLog.js');
 var config = require('../../config');
 
 var pageSize = 10;
@@ -80,13 +81,41 @@ module.exports = {
             hpo = [ hpo ];
         }
         for (var i = 0;i < hpo.length;i++){
-            var idnName = hpo[i].split('$');
-            res.locals.searched[i] = idnName;
+            res.locals.searched[i] = hpo[i].split('$');
         }
+        console.log(res.locals.searched);
+        searchLogger.write(res.locals.searched);
         res.locals.navMod = 0;
-
-        return quickTemplate(req, res);
-
+        if (typeof req.session.userName != 'undefined' && req.session.userName != '') {
+            //更新搜索记录
+            Searches.find({
+                user: req.session.userName
+            }).then(function(searches){
+                var searchString = new Date() + '$' + res.locals.searched;
+                if (searches.length > 0){
+                    var search = searches[0];
+                    var iterator = (search.iterator + 1) > 9 ? 0 : search.iterator + 1;
+                    var updateBody = { iterator: iterator };
+                    updateBody['search'+search.iterator] = searchString;
+                    return Searches.update({ user: req.session.userName }, updateBody);
+                }
+                else {
+                    return Searches.create({
+                        user: req.session.userName,
+                        search0: searchString
+                    });
+                }
+            }).then(function(result){
+                return quickTemplate(req, res);
+            },function(err){
+                console.log(err);
+                next(err);
+            })
+        }
+        else {
+            return quickTemplate(req, res);
+        }
+/*
         var hpo = req.param("HPO");
         var http = require('http');
         new Promise(function (resolve, rej) {
@@ -168,6 +197,7 @@ module.exports = {
         }, function(err) {
             return next(err);
         });
+        */
     },
 
     /**
@@ -601,15 +631,41 @@ module.exports = {
             return Request.find({
                 or: caseId
             })
-        }).then(function(requests){
+        }).then(function(requests) {
             res.locals.requests = requests;
+
+            return Searches.find({
+                user: req.session.userName
+            });
+        }, function(err){
+            if (err != 'cases'){
+                console.log(err);
+                return next(err);
+            }
+            return Searches.find({
+                user: req.session.userName
+            });
+        }).then(function(searches){
+            res.locals.searches = [];
+            if (searches.length > 0){
+                var search = searches[0];
+                var iterator = search.iterator;
+                for (var i = 0;i < 9;i++){
+                    iterator = iterator-1 < 0 ? 9 : iterator-1;
+                    if (search['search' + iterator].length == 0) break;
+                    res.locals.searches[i] = {
+                        date: search['search' + iterator].split('$')[0],
+                        searchedString: []
+                    };
+                    var searchedString = search['search' + iterator].split('$')[1].split(',');
+                    for (var j = 0;j < searchedString.length;j += 2){
+                        res.locals.searches[i].searchedString[j/2] = [ searchedString[j], searchedString[j+1] ];
+                    }
+                }
+            }
             res.locals.view = 'my_request';
             return quickTemplate(req, res);
         }, function(err){
-            if (err == 'cases') {
-                res.locals.view = 'my_request';
-                return quickTemplate(req, res);
-            }
             next(err);
         });
     },
