@@ -1,5 +1,5 @@
 /**
- * Admin/login.js
+ * Admin/User.js
  */
 module.exports = {
 	tableName: 'Web_users',

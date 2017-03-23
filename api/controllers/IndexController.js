@@ -1,7 +1,7 @@
 var Promise = require('es6-promise').Promise;
 var Crypto = require('crypto');
 var mailer = require('../services/SMTPmailer.js');
-var searchLogger = require('../services/searchLog.js');
+//var searchLogger = require('../services/searchLog.js');
 var config = require('../../config');
 
 var pageSize = 10;
@@ -84,37 +84,41 @@ module.exports = {
             res.locals.searched[i] = hpo[i].split('$');
         }
         console.log(res.locals.searched);
-        searchLogger.write(res.locals.searched);
-        res.locals.navMod = 0;
-        if (typeof req.session.userName != 'undefined' && req.session.userName != '') {
+        SearchLog.create({
+            phenotype: res.locals.searched
+        }).then(function(){
+            res.locals.navMod = 0;
+            if (typeof req.session.userName == 'undefined' || req.session.userName == '') {
+                return Promise.reject('user');
+            }
             //更新搜索记录
-            Searches.find({
+            return Searches.find({
                 user: req.session.userName
-            }).then(function(searches){
-                var searchString = new Date() + '$' + res.locals.searched;
-                if (searches.length > 0){
-                    var search = searches[0];
-                    var iterator = (search.iterator + 1) > 9 ? 0 : search.iterator + 1;
-                    var updateBody = { iterator: iterator };
-                    updateBody['search'+search.iterator] = searchString;
-                    return Searches.update({ user: req.session.userName }, updateBody);
-                }
-                else {
-                    return Searches.create({
-                        user: req.session.userName,
-                        search0: searchString
-                    });
-                }
-            }).then(function(result){
-                return quickTemplate(req, res);
-            },function(err){
-                console.log(err);
-                next(err);
             })
-        }
-        else {
+        }).then(function(searches) {
+            var searchString = new Date() + '$' + res.locals.searched;
+            if (searches.length > 0){
+                var search = searches[0];
+                var iterator = (search.iterator + 1) > 9 ? 0 : search.iterator + 1;
+                var updateBody = { iterator: iterator };
+                updateBody['search'+search.iterator] = searchString;
+                return Searches.update({ user: req.session.userName }, updateBody);
+            }
+            else {
+                return Searches.create({
+                    user: req.session.userName,
+                    search0: searchString
+                });
+            }
+        }).then(function(search){
             return quickTemplate(req, res);
-        }
+        }, function(err) {
+            if (err == 'user'){
+                return quickTemplate(req, res);
+            }
+            console.log(err);
+            next(err);
+        });
 /*
         var hpo = req.param("HPO");
         var http = require('http');
