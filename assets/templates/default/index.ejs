@@ -68,14 +68,21 @@
                     }
                 });
             });
-            function showTree(a){
-                $(a).hide();
+            function showTree(){
+                $('#show-tree').hide();
+                $('#hide-tree').show();
                 $('#tree').show();
             }
+            function hideTree(){
+                $('#show-tree').show();
+                $('#hide-tree').hide();
+                $('#tree').hide();
+            }
         </script>
+        <a id="show-tree" href="javascript: void(0);" onclick="showTree()"><%-lan == 'eng' ? 'Show phenotype tree>>':'显示症状树>>'%></a>
+        <a id="hide-tree" href="javascript: void(0);" onclick="hideTree()" hidden><%-lan == 'eng' ? 'Hide phenotype tree<<':'隐藏症状树<<'%></a>
         <div class=mainBox id="tree" hidden>
         </div>
-        <a href="javascript: void(0);" onclick="showTree(this)"><%-lan == 'eng' ? 'Show phenotype tree>>':'显示症状树>>'%></a>
         <script>
             function testCloud(){
                 alert('success!');
