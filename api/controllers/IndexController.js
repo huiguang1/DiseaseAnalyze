@@ -47,6 +47,7 @@ function errTemplate(req, res, err) {
     return res.templet({});
 }
 
+
 module.exports = {
     /**
      * index page(main page)
@@ -80,12 +81,20 @@ module.exports = {
         if (typeof hpo == 'string'){
             hpo = [ hpo ];
         }
+        var logPhenotype = '';
         for (var i = 0;i < hpo.length;i++){
             res.locals.searched[i] = hpo[i].split('$');
+            logPhenotype += res.locals.searched[i] + ';';
         }
-        console.log(res.locals.searched);
+        var guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+            return v.toString(16);
+        });
+        res.locals.guid = guid;
         SearchLog.create({
-            phenotype: res.locals.searched
+            phenotype: logPhenotype,
+            guid: guid,
+            ip: req.ip.replace(/::ffff:/, '')
         }).then(function(){
             res.locals.navMod = 0;
             if (typeof req.session.userName == 'undefined' || req.session.userName == '') {

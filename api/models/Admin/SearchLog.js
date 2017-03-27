@@ -22,6 +22,14 @@ module.exports = {
         phenotype: {
             type: 'string',
             columnName: 'phenotype'
+        },
+        guid: {
+            type: 'string',
+            columnName: 'guid'
+        },
+        ip: {
+            type: 'string',
+            columnName: 'ip'
         }
     }
 };
