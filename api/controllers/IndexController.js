@@ -91,10 +91,14 @@ module.exports = {
             return v.toString(16);
         });
         res.locals.guid = guid;
+        var ip = req.headers['x-forwarded-for'] ||
+            req.connection.remoteAddress ||
+            req.socket.remoteAddress ||
+            req.connection.socket.remoteAddress;
         SearchLog.create({
             phenotype: logPhenotype,
             guid: guid,
-            ip: req.connection.remoteAddress.replace(/::ffff:/, '')//req.ip.replace(/::ffff:/, '')
+            ip: ip//req.connection.remoteAddress.replace(/::ffff:/, '')//req.ip.replace(/::ffff:/, '')
         }).then(function(){
             res.locals.navMod = 0;
             if (typeof req.session.userName == 'undefined' || req.session.userName == '') {
