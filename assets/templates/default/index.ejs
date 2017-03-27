@@ -68,9 +68,14 @@
                     }
                 });
             });
+            function showTree(a){
+                $(a).hide();
+                $('#tree').show();
+            }
         </script>
-        <div class=mainBox id="tree">
+        <div class=mainBox id="tree" hidden>
         </div>
+        <a href="javascript: void(0);" onclick="showTree(this)"><%-lan == 'eng' ? 'Show phenotype tree>>':'显示症状树>>'%></a>
         <script>
             function testCloud(){
                 alert('success!');
