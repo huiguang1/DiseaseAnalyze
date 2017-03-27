@@ -94,7 +94,7 @@ module.exports = {
         SearchLog.create({
             phenotype: logPhenotype,
             guid: guid,
-            ip: req.ip.replace(/::ffff:/, '')
+            ip: req.connection.remoteAddress.replace(/::ffff:/, '')//req.ip.replace(/::ffff:/, '')
         }).then(function(){
             res.locals.navMod = 0;
             if (typeof req.session.userName == 'undefined' || req.session.userName == '') {
