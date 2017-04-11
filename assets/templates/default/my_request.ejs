@@ -54,7 +54,7 @@
 </table>
 
 <% } else { %>
-<h3>您目前没有接收到查看病例申请。</h3>
+<h3><%-lan == 'eng' ? 'You have not received any application yet.' : '您目前没有接收到查看病例申请。'%></h3>
 <% } %>
 <% if (cases.length > 0) { %>
 <h3><%-lan=='eng'?'Your cases':'您管理的病例'%>（<a href="new_case"><%-lan=='eng'?'Add a new case':'新建病例'%></a>）：</h3>

@@ -46,8 +46,8 @@
     });
 </script>
 <div class="row row-search">
-    <input class="col-md-11 input-search" placeholder="请输入症状以进行检索" ng-model="searchedDisease">
-    <button class="btn btn-default col-md-1" id="search-case" ng-click="searchCase()">搜索</button>
+    <input class="col-md-11 input-search" placeholder="<%-lan == 'eng' ? 'Please enter a symptom to search' : '请输入症状以进行检索'%>" ng-model="searchedDisease">
+    <button class="btn btn-default col-md-1" id="search-case" ng-click="searchCase()"><%-lan == 'eng' ? 'Search' : '搜索'%></button>
 </div>
 <table class="table table-bordered table-striped dataTable" role="grid">
     <thead>
@@ -74,9 +74,9 @@
             <td>{{ case.id }}</td>
             <td>{{ case.Phenotype }}</td>
             <td>{{ case.Owner }}</td>
-            <td>{{ case.View == 'public' ? '公开' : '私有' }}</td>
+            <td>{{ case.View == 'public' ? '<%-lan == 'eng' ? 'public' : '公开'%>' : '<%-lan == 'eng' ? 'private' : '私有'%>' }}</td>
             <% if (userName == '') { %>
-            <td>请登录以进行操作</td>
+            <td><%-lan == 'eng' ? 'Please login' : '请登录以进行操作'%></td>
             <% } else { %>
             <td ng-if="case.View == 'public' || case.viewable == 'yes'"><a target="_blank" ng-href="{{ '/watch_case/' + case.id }}">查看该症状</a></td>
             <td ng-if="case.View == 'private' && case.viewable != 'yes'">

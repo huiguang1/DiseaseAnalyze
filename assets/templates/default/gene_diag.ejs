@@ -124,6 +124,7 @@
     </form>
 </div>
 <div class="row">
+    <script src="<%=static_dir%>/js/xlsx.core.min.js"></script>
     <script src="<%=static_dir%>/js/caseUploader.js"></script>
     <script>
         var geneFiles = [];
@@ -189,7 +190,24 @@
         <div id="testupload"></div>
         <script>
             function upload(){
-                $('#testupload').caseUploader();
+                var files = [];
+                for (var i = 0;$('#file')[0].files[i];i++){
+                    files[i] = $('#file')[0].files[i];
+                }
+                files.sort(function(a, b){
+                    return a.size > b.size;
+                })
+                var file = files[0];
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    alert(e.target.result);
+                }
+                reader.readAsBinaryString(file);
+                return;
+
+                $('#testupload').caseUploader({
+
+                });
                 return;
 
                 alert(1);

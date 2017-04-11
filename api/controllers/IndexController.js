@@ -721,11 +721,7 @@ module.exports = {
 
     upload: function(req, res, next) {
         console.log(req.body);
-        req.file('file').upload(function (err, uploadedFiles){
-            if (err) return res.send(500, err);
-            console.log(uploadedFiles);
-            return res.send(200, uploadedFiles);
-        });
+        res.send(200);
     },
 
     newCase: function(req, res , next) {
