@@ -679,7 +679,6 @@ module.exports = {
                     }
                     iterator = iterator-1 < 0 ? 9 : iterator-1;
                 }
-                console.log(res.locals.searches[0].date);
             }
             res.locals.view = 'my_request';
             return quickTemplate(req, res);
