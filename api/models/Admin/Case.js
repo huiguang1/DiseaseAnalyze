@@ -29,10 +29,6 @@ module.exports = {
             type: 'string',
             columnName: 'Phenotype'
         },
-        Genotype: {
-            type:'string',
-            columnName: 'Genotype'
-        },
         Owner: {
             type: 'string',
             columnName: 'Owner'
