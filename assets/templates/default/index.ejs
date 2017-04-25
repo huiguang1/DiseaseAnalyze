@@ -84,9 +84,6 @@
         <div class=mainBox id="tree" hidden>
         </div>
         <script>
-            function testCloud(){
-                alert('success!');
-            }
             $(function() {
                 var $myCloud = $("#phenotype-cloud");
                 $.ajax({
@@ -149,7 +146,8 @@
                         formatInputTooShort:  eng == 1 ? 'Please enter at least 2 characters' : "请输入至少2个字符以进行检索",
                         //maximumInputLength: 40,
                         templateResult:formatRepo,
-                        templateSelection:formatRepoSelection
+                        templateSelection:formatRepoSelection,
+                        openOnEnter: false
                     }).on("select2:select", function(e)//搜索栏中添加一项时，与列表进行同步
                     {
                         insertRow(e.params.data.id.substr(3));

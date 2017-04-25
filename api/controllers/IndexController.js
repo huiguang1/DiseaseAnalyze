@@ -120,7 +120,8 @@ module.exports = {
             else {
                 return Searches.create({
                     user: req.session.userName,
-                    search0: searchString
+                    search0: searchString,
+                    iterator: 1
                 });
             }
         }).then(function(search){
@@ -633,8 +634,14 @@ module.exports = {
             res.send('login');
             return;
         }
-        Case.find({
-            Owner: req.session.userName
+        Request.find({
+            requester: req.session.userName
+        }).then(function(requests) {
+            res.locals.requestsSent = requests;
+
+            return Case.find({
+                Owner: req.session.userName
+            })
         }).then(function(cases){
             res.locals.cases = cases;
             res.locals.requests = [];
@@ -668,6 +675,7 @@ module.exports = {
                 var search = searches[0];
                 var iterator = search.iterator;
                 for (var i = 0;i < 9;i++){
+                    iterator = iterator-1 < 0 ? 9 : iterator-1;
                     if (search['search' + iterator] == null || search['search' + iterator].length == 0) break;
                     res.locals.searches[i] = {
                         date: search['search' + iterator].split('$')[0],
@@ -677,7 +685,6 @@ module.exports = {
                     for (var j = 0;j < searchedString.length;j += 2){
                         res.locals.searches[i].searchedString[j/2] = [ searchedString[j], searchedString[j+1] ];
                     }
-                    iterator = iterator-1 < 0 ? 9 : iterator-1;
                 }
             }
             res.locals.view = 'my_request';

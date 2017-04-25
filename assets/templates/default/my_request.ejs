@@ -56,6 +56,39 @@
 <% } else { %>
 <h3><%-lan == 'eng' ? 'You have not received any application yet.' : '您目前没有接收到查看病例申请。'%></h3>
 <% } %>
+
+<% if (requestsSent.length > 0) { %>
+<h3><%-lan=='eng'?'Requests you have sent: ' : '您发送的查看病例申请：'%></h3>
+<table class="table table-bordered table-striped dataTable" role="grid">
+    <thead>
+    <tr role="row">
+        <th class="col-md-6">
+            <% if (lan == 'eng') { %>Case<% } else { %>病例<% } %>
+        </th>
+        <th class="col-md-6">
+            <% if (lan == 'eng') { %>Status<% } else { %>状态<% } %>
+        </th>
+    </tr>
+    </thead>
+    <tbody id="tableBody">
+    <% for (var i = 0;i < requestsSent.length;i++) { %>
+    <tr role="row" class="color-palette">
+        <td><a target="_blank" href="/watch_case/<%-requestsSent[i].case%>"><%-requestsSent[i].case%></a></td>
+        <% if (requestsSent[i].status == 'pending') { %>
+        <td><% if (lan == 'eng') { %>Pending<% } else { %>待审批<% } %></td>
+        <% } else if (requestsSent[i].status == 'accepted') { %>
+        <td><% if (lan == 'eng') { %>Accepted<% } else { %>已通过<% } %></td>
+        <% } else if (requestsSent[i].status == 'rejected') { %>
+        <td><% if (lan == 'eng') { %>Rejected<% } else { %>已拒绝<% } %></td>
+        <% } %>
+    </tr>
+    <% } %>
+    </tbody>
+</table>
+<% } else { %>
+<h3><%-lan == 'eng' ? 'You have not sent any application yet.' : '您目前没有发送过查看病例申请。'%></h3>
+<% } %>
+
 <% if (cases.length > 0) { %>
 <h3><%-lan=='eng'?'Your cases':'您管理的病例'%>（<a href="new_case"><%-lan=='eng'?'Add a new case':'新建病例'%></a>）：</h3>
 <table class="table table-bordered table-striped dataTable" role="grid">
@@ -177,5 +210,7 @@
     <% } %>
     </tbody>
 </table>
+<% } else { %>
+<h3><%-lan=='eng'?'You have not searched yet':'您还没有进行过搜索'%></h3>
 <% } %>
 <% include ./footer.ejs %>
