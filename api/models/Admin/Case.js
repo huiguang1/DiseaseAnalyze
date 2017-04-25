@@ -29,10 +29,6 @@ module.exports = {
             type: 'string',
             columnName: 'Phenotype'
         },
-        Genotype: {
-            type: 'string',
-            columnName: 'Genotype'
-        },
         Owner: {
             type: 'string',
             columnName: 'Owner'
@@ -40,6 +36,10 @@ module.exports = {
         View: {
             type: 'string',
             columnName: 'View'
+        },
+        Disease: {
+            type: 'string',
+            columnName: 'Disease'
         }
     }
 };

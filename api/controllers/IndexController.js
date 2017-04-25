@@ -425,7 +425,7 @@ module.exports = {
     },
 
     signUp: function(req, res, next) {
-        var usrName = req.param("name").trim();
+        var usrName = req.param("name").trim().toLowerCase();
         var psw = myMD5(req.param("password").trim());
         var email = req.param("email").trim();
         var verification = req.param("verification").trim();
@@ -434,6 +434,7 @@ module.exports = {
             return;
         }
 
+        //注意，用户名对大小写不敏感
         User.find({
             or: [{ name: usrName }, { email: email } ]
         }).then(function(users){
@@ -484,14 +485,13 @@ module.exports = {
             return quickTemplate(req, res);
         }
 
-        var usrName = req.param("name").trim();
+        var usrName = req.param("name").trim().toLowerCase();
         var psw = myMD5(req.param("password").trim());
         var verification = req.param("verification").trim();
         if (verification != req.session.login.randomcode){
             res.send('verification');
             return;
         }
-
         User.find({
             name: usrName,
             password: psw
@@ -668,8 +668,7 @@ module.exports = {
                 var search = searches[0];
                 var iterator = search.iterator;
                 for (var i = 0;i < 9;i++){
-                    iterator = iterator-1 < 0 ? 9 : iterator-1;
-                    if (search['search' + iterator].length == 0) break;
+                    if (search['search' + iterator] == null || search['search' + iterator].length == 0) break;
                     res.locals.searches[i] = {
                         date: search['search' + iterator].split('$')[0],
                         searchedString: []
@@ -678,7 +677,9 @@ module.exports = {
                     for (var j = 0;j < searchedString.length;j += 2){
                         res.locals.searches[i].searchedString[j/2] = [ searchedString[j], searchedString[j+1] ];
                     }
+                    iterator = iterator-1 < 0 ? 9 : iterator-1;
                 }
+                console.log(res.locals.searches[0].date);
             }
             res.locals.view = 'my_request';
             return quickTemplate(req, res);
