@@ -1,39 +1,159 @@
 <% include ./header.ejs %>
+
+
+<script>
+    var app = angular.module('myApp', []);
+    app.controller('myCtrl', function($scope) {
+        $scope.files = [];
+        $scope.chroms = [];
+        $scope.genes = [];
+
+        //检查文件名称是否存在，然后切换至次级窗体
+        $scope.openForm = function(){
+            if ($scope.fileName == ''){
+                return alert('请输入文件名！');
+            }
+            for (var i = 0;i < $scope.files.length;i++){
+                if ($scope.files[i].name == $scope.fileName){
+                    return alert('文件名已存在，请重新输入！');
+                }
+            }
+            $('#contentNewFile').hide();
+            switch ($scope.type){
+                case 'gene':
+                    $('#contentNewGene').show();
+                    break;
+                case 'chromosome':
+                    $('#contentNewChromosome').show();
+            }
+        };
+
+        //新增染色体异常项，加入表格
+        $scope.addChromosome = function(){
+            if ($scope.chromosome == '' || $scope.chromosomeArm == ''
+                || $scope.location == '' || $scope.variationType == ''){
+                return alert('请输入完整的染色体信息！');
+            }
+            $scope.chroms.push({
+                Chrom: $scope.chromosome,
+                Arm: $scope.chromosomeArm,
+                Pos: $scope.location,
+                Type: $scope.variationType
+            });
+        };
+
+        //新增基因异常项，加入表格
+        $scope.addGene = function(){
+            if ($scope.gene == ''){
+                return alert('请输入基因名！');
+            }
+            $scope.genes.push({
+                Name: $scope.gene
+            });
+            $scope.gene = '';
+        };
+
+        //删除一条染色体记录
+        $scope.deleteChrom = function(chrom){
+            $scope.chroms.splice($scope.chroms.indexOf(chrom), 1);
+        };
+
+        //删除一条基因记录
+        $scope.deleteGene = function(gene){
+            $scope.genes.splice($scope.genes.indexOf(gene), 1);
+        };
+
+        //完成一个染色体变异文件的创建
+        $scope.saveChromosome = function(){
+            if ($scope.chroms.length == 0){
+                return alert('请先添加染色体变异数据！');
+            }
+            $scope.files.push({
+                name: $scope.fileName,
+                type: $scope.type,
+                patient: $scope.patient,
+                chroms: $scope.chroms,
+                valid: true
+            });
+            $scope.chroms = [];
+            $('#myModal').modal('hide');
+        };
+
+        //完成一个基因变异文件的创建
+        $scope.saveGene = function(){
+            if ($scope.genes.length == 0){
+                return alert('请先添加基因变异数据！');
+            }
+            $scope.files.push({
+                name: $scope.fileName,
+                type: $scope.type,
+                patient: $scope.patient,
+                genes: $scope.genes,
+                valid: true
+            });
+            $scope.genes = [];
+            $('#myModal').modal('hide');
+        };
+
+        $scope.upload = function(){
+            if ($scope.files.length == 0){
+                return alert('请先添加文件！');
+            }
+            $scope.diagnoseInfo = '文件正在上传和分析中，请耐心等候……';
+            $.ajax({
+                url : "/???",
+                async: false,
+                data : {
+                    newFiles: $scope.files,
+
+                },
+                type: 'POST',
+                success: function( data ) {
+                    alert(data);
+                },
+                error: function() {
+                    alert("网络连接异常");
+                }
+            });
+        }
+    });
+</script>
+
+
+
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content" id="contentNewGene" hidden>
+        <div class="modal-content" id="contentNewFile" hidden>
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                     &times;
                 </button>
                 <h4 class="modal-title">
-                    <% if (lan == 'eng') { %>New gene<% } else { %>新增基因<% } %>
+                    <% if (lan == 'eng') { %>New file<% } else { %>新增文件<% } %>
                 </h4>
             </div>
             <div class="modal-body">
-                <form id="formNewGene">
-                    <label class="col-md-6"><% if (lan == 'eng') { %>File type: <% } else { %>文件类型：<% } %>
-                        <select name="type">
-                            <option value="gene"><% if (lan == 'eng') { %>Genovariation<% } else { %>基因变异<% } %></option>
-                            <option value="chromosome"><% if (lan == 'eng') { %>Chromosome variation<% } else { %>染色体变异<% } %></option>
-                        </select>
-                    </label>
-                    <label class="col-md-6"><% if (lan == 'eng') { %>Patient: <% } else { %>病患：<% } %>
-                        <select name="patient">
-                            <option value="self"><% if (lan == 'eng') { %>Self<% } else { %>本人<% } %></option>
-                            <option value="father"><% if (lan == 'eng') { %>Father<% } else { %>父亲<% } %></option>
-                            <option value="mother"><% if (lan == 'eng') { %>Mother<% } else { %>母亲<% } %></option>
-                            <option value="grandfather"><% if (lan == 'eng') { %>Grandfather<% } else { %>祖父<% } %></option>
-                            <option value="grandmother"><% if (lan == 'eng') { %>Grandmother<% } else { %>祖母<% } %></option>
-                        </select>
-                    </label>
-                    <label class="col-md-12"><% if (lan == 'eng') { %>File name: <% } else { %>文件名：<% } %>
-                        <input name="fileName">
-                    </label>
-                </form>
-                <button onclick="openForm('NewChromosome', document.getElementById('formNewGene').elements['fileName'].value)"><% if (lan == 'eng') { %>Next<% } else { %>下一步<% } %></button>
+                <label class="col-md-6"><% if (lan == 'eng') { %>File type: <% } else { %>文件类型：<% } %>
+                    <select ng-model="type" ng-init="type='gene'">
+                        <option value="gene"><% if (lan == 'eng') { %>Genovariation<% } else { %>基因变异<% } %></option>
+                        <option value="chromosome"><% if (lan == 'eng') { %>Chromosome variation<% } else { %>染色体变异<% } %></option>
+                    </select>
+                </label>
+                <label class="col-md-6"><% if (lan == 'eng') { %>Patient: <% } else { %>病患：<% } %>
+                    <select ng-model="patient" ng-init="patient='self'">
+                        <option value="self"><% if (lan == 'eng') { %>Self<% } else { %>本人<% } %></option>
+                        <option value="father"><% if (lan == 'eng') { %>Father<% } else { %>父亲<% } %></option>
+                        <option value="mother"><% if (lan == 'eng') { %>Mother<% } else { %>母亲<% } %></option>
+                        <option value="grandfather"><% if (lan == 'eng') { %>Grandfather<% } else { %>祖父<% } %></option>
+                        <option value="grandmother"><% if (lan == 'eng') { %>Grandmother<% } else { %>祖母<% } %></option>
+                    </select>
+                </label>
+                <label class="col-md-12"><% if (lan == 'eng') { %>File name: <% } else { %>文件名：<% } %>
+                    <input ng-model="fileName" ng-init="fileName=''">
+                </label>
+                <button ng-click="openForm()"><% if (lan == 'eng') { %>Next<% } else { %>下一步<% } %></button>
             </div>
-        </div><!-- contentNewGene -->
+        </div><!-- contentNewFile -->
         <div class="modal-content" id="contentNewChromosome" hidden>
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
@@ -44,33 +164,31 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <form id="formNewChromosome">
-                    <label><% if (lan == 'eng') { %>Chromosome<% } else { %>染色体<% } %>
-                        <select name="chromosome">
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="X">X</option>
-                            <option value="Y">Y</option>
-                        </select>
-                    </label>
-                    <label><% if (lan == 'eng') { %>chromosome arm<% } else { %>染色体臂<% } %>
-                        <select name="chromosomeArm">
-                            <option value="p">p</option>
-                            <option value="q">q</option>
-                        </select>
-                    </label>
-                    <label><% if (lan == 'eng') { %>Location<% } else { %>位置<% } %>
-                        <input name="location">
-                    </label>
-                    <label><% if (lan == 'eng') { %>Type<% } else { %>类型<% } %>
-                        <select name="variationType">
-                            <option value="insertion"><% if (lan == 'eng') { %>insertion<% } else { %>插入<% } %></option>
-                            <option value="deletion"><% if (lan == 'eng') { %>deletion<% } else { %>缺失<% } %></option>
-                        </select>
-                    </label>
-                </form>
-                <button onclick="addChromosome()"><% if (lan == 'eng') { %>Add<% } else { %>添加<% } %></button>
-                <table id="chromosomeTable" class="table table-bordered table-striped dataTable" role="grid">
+                <label><% if (lan == 'eng') { %>Chromosome<% } else { %>染色体<% } %>
+                    <select ng-model="chromosome" ng-init="chromosome='1'">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="X">X</option>
+                        <option value="Y">Y</option>
+                    </select>
+                </label>
+                <label><% if (lan == 'eng') { %>chromosome arm<% } else { %>染色体臂<% } %>
+                    <select ng-model="chromosomeArm" ng-init="chromosomeArm='p'">
+                        <option value="p">p</option>
+                        <option value="q">q</option>
+                    </select>
+                </label>
+                <label><% if (lan == 'eng') { %>Location<% } else { %>位置<% } %>
+                    <input ng-model="location" ng-init="location=''">
+                </label>
+                <label><% if (lan == 'eng') { %>Type<% } else { %>类型<% } %>
+                    <select ng-model="variationType" ng-init="variationType='gain'">
+                        <option value="gain"><% if (lan == 'eng') { %>insertion<% } else { %>插入<% } %></option>
+                        <option value="loss"><% if (lan == 'eng') { %>deletion<% } else { %>缺失<% } %></option>
+                    </select>
+                </label>
+                <button ng-click="addChromosome()"><% if (lan == 'eng') { %>Add<% } else { %>添加<% } %></button>
+                <table ng-if="chroms.length>0" class="table table-bordered table-striped dataTable" role="grid">
                     <thead>
                     <tr role="row">
                         <th class="col-md-4" title="<% if (lan == 'eng') { %>Chromosome Location<% } else { %>染色体位置<% } %>">
@@ -84,44 +202,84 @@
                         </th>
                     </tr>
                     </thead>
-                    <tbody id="chromosomeTableBody"></tbody>
+                    <tbody>
+                    <tr role="row" class="color-palette" ng-repeat="chrom in chroms">
+                        <td>{{ chrom.Chrom + chrom.Arm + chrom.Pos }}</td>
+                        <td>{{ <%-lan=='eng'?'chrom.Type':'chrom.Type=="gain"?"插入":"缺失"'%> }}</td>
+                        <td><a href="javascript:void(0)" ng-click="deleteChrom(chrom)"><%-lan=='eng'?'delete':'删除'%></a></td>
+                    </tr>
+                    </tbody>
                 </table>
 
-                <button onclick="saveChromosome()"><% if (lan == 'eng') { %>OK<% } else { %>确定<% } %></button>
+                <button ng-click="saveChromosome()"><% if (lan == 'eng') { %>OK<% } else { %>确定<% } %></button>
+            </div>
+        </div>
+        <div class="modal-content" id="contentNewGene" hidden>
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title">
+                    <% if (lan == 'eng') { %>New gene variation<% } else { %>新增基因变异<% } %>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <label><% if (lan == 'eng') { %>Gene name<% } else { %>基因名<% } %>
+                    <input ng-model="gene" ng-init="gene=''">
+                </label>
+                <button ng-click="addGene()"><% if (lan == 'eng') { %>Add<% } else { %>添加<% } %></button>
+                <table ng-if="genes.length>0" class="table table-bordered table-striped dataTable" role="grid">
+                    <thead>
+                    <tr role="row">
+                        <th class="col-md-6" title="<% if (lan == 'eng') { %>Gene name<% } else { %>基因名<% } %>">
+                            <% if (lan == 'eng') { %>Gene name<% } else { %>基因名<% } %>
+                        </th>
+                        <th class="col-md-6" title="<% if (lan == 'eng') { %>Do something to this entry<% } else { %>对该条目进行操作<% } %>">
+                            <% if (lan == 'eng') { %>Operation<% } else { %>操作<% } %>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr role="row" class="color-palette" ng-repeat="gene in genes">
+                        <td>{{ gene.Name }}</td>
+                        <td><a href="javascript:void(0)" ng-click="deleteGene(gene)"><%-lan=='eng'?'delete':'删除'%></a></td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <button ng-click="saveGene()"><% if (lan == 'eng') { %>OK<% } else { %>确定<% } %></button>
             </div>
         </div>
     </div><!-- /.modal -->
 </div>
 <div class="row">
-    <form id="formMain">
-        <div class="col-md-4">
-            <label>
-                性别
-                <select name="gender">
-                    <option value="male">男</option>
-                    <option value="female">女</option>
-                </select>
-            </label>
-        </div>
-        <div class="col-md-4">
-            <label>
-                年龄
-                <input name="age">
-            </label>
-        </div>
-        <div class="col-md-4">
-            <label>遗传方式
-                <select name="inheritance">
-                    <option value="unknown">未知</option>
-                    <option value="recessive">常染色体隐性</option>
-                    <option value="dominant">常染色体显性</option>
-                    <option value="XRecessive">X连锁隐性</option>
-                    <option value="XDominant">X连锁显性</option>
-                    <option value="YChain">Y染色体连锁</option>
-                </select>
-            </label>
-        </div>
-    </form>
+    <div class="col-md-4">
+        <label>
+            性别
+            <select ng-model="gender" ng-init="gender='male'">
+                <option value="male">男</option>
+                <option value="female">女</option>
+            </select>
+        </label>
+    </div>
+    <div class="col-md-4">
+        <label>
+            年龄
+            <input ng-model="age" ng-init="age=''">
+        </label>
+    </div>
+    <div class="col-md-4">
+        <label>遗传方式
+            <select ng-model="inheritance" ng-init="inheritance='unknown'">
+                <option value="unknown">未知</option>
+                <option value="recessive">常染色体隐性</option>
+                <option value="dominant">常染色体显性</option>
+                <option value="XRecessive">X连锁隐性</option>
+                <option value="XDominant">X连锁显性</option>
+                <option value="YChain">Y染色体连锁</option>
+            </select>
+        </label>
+    </div>
 </div>
 <div class="row">
     <script src="<%=static_dir%>/js/xlsx.core.min.js"></script>
@@ -132,10 +290,11 @@
         $(document).ready(function() {
             //注册myModal打开和关闭事件
             $('#myModal').on('shown.bs.modal', function() {
-                $('#contentNewGene').show();
+                $('#contentNewFile').show();
             }).on('hide.bs.modal', function(){
-                $('#contentNewGene').hide();
+                $('#contentNewFile').hide();
                 $('#contentNewChromosome').hide();
+                $('#contentNewGene').hide();
             });
         })
 
@@ -144,55 +303,13 @@
             $('#myModal').modal('show');
         }
 
-        //检查文件名称是否存在，然后切换至次级窗体
-        function openForm(formName, fileName) {
-            for (var i =0;i < geneFiles.length;i++){
-                if (geneFiles[i].fileName == fileName)
-                {
-                    alert('文件名已存在，请重新输入！');
-                    return;
-                }
-            }
-
-            $('#contentNewGene').hide();
-            $('#content' + formName).show();
-        }
-
-        //新增染色体异常项，加入表格
-        function addChromosome() {
-            var form = document.getElementById('formNewChromosome');
-
-            var html = '<tr role="row" class="color-palette">';
-            html += '<td>' + form.elements['chromosome'].value
-                + form.elements['chromosomeArm'].value
-                + form.elements['location'].value + '</td>';
-            html += '<td>' + form.elements['variationType'].value + '</td>';
-
-
-            html += '</tr>';
-            $('#chromosomeTableBody').append($(html));
-            var newName = $('<td>'+row.chname+'</td>');
-            if (row.description == "NULL") row.description = "";
-            var newDcrp = $('<td>'+row.description+'</td>');
-            var links = "";
-            for (var i in row.children){
-                links += '<a onclick="addSelect(\''+row.children[i].key+'\', \''+row.children[i].chname+
-                    '\')">'+row.children[i].chname+'</a>&nbsp;';
-            }
-            var newLeaf = $('<td>'+links+'</td>');
-        }
     </script>
     <div class="row">
-        基因变异文件：
-        <button onclick="newGene()">新建</button>
-        <button onclick="upload()">上传</button>
-        <input type="file" multiple="multiple" name="file" id="file">
+        <p>基因或染色体变异文件：</p>
+        <button onclick="newGene()" class="btn btn-info">新建</button>
         <div id="testupload"></div>
         <script>
             function upload(){
-                var str = 'abc/de/f/gh';
-                alert(str.length);
-                alert(str.lastIndexOf('/'));
 
 
                 var files = [];
@@ -341,7 +458,7 @@
             }
         </script>
     </div>
-    <table id="geneTable" class="table table-bordered table-striped dataTable" role="grid">
+    <table class="table table-bordered table-striped dataTable" role="grid" ng-if="files.length > 0">
         <thead>
         <tr role="row">
             <th class="col-md-5" title="<% if (lan == 'eng') { %>Name of the file<% } else { %>文件名<% } %>">
@@ -355,8 +472,27 @@
             </th>
         </tr>
         </thead>
-        <tbody id="tableBody"></tbody>
+        <tbody>
+        <tr role="row" class="color-palette" ng-repeat="file in files">
+            <td>{{ file.name }}</td>
+            <td>{{ <%-lan=='eng'?'file.type':'file.type=="gene"?"基因变异":"染色体变异"'%> }}</td>
+            <td><input type="checkbox" ng-model="file.valid"></td>
+        </tr>
+        </tbody>
     </table>
+    <div class="row">
+        <hr>
+        如数据量较大，请使用文件上传功能（支持vcf格式）：
+        <input type="file" multiple="multiple" name="file" id="file">
+    </div>
+    <div class="row">
+        <hr>
+        <button ng-click="upload()" class="btn btn-default pull-right">诊断</button>
+        <button onclick="upload()" class="btn btn-default pull-right">测试</button>
+    </div>
+    <div class="row">
+        {{ diagnoseInfo }}
+    </div>
 </div>
 
 <% include ./footer.ejs %>

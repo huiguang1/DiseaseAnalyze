@@ -3,8 +3,11 @@ var Crypto = require('crypto');
 var mailer = require('../services/SMTPmailer.js');
 //var searchLogger = require('../services/searchLog.js');
 var config = require('../../config');
+var fs = require('fs');
 
-var pageSize = 10;
+var pageSize = 16;
+
+var dynamicDir = '.tmp/uploads/';
 
 /**
  * Construct an array of [ 1, 2, ..., n ]
@@ -517,15 +520,21 @@ module.exports = {
 
     searchCase: function(req, res, next) {
         var searched = req.param("searched") ? req.param("searched").trim() : '';
-        //var page = req.param("page") ? parseInt(req.param("page").trim()) : 1;
-        //var skip = (page - 1) * pageSize;
-        Case.find({
-            //skip: skip,
-            //limit: pageSize,
-            Phenotype: {
-                like: "%" + searched + "%"
-            },
-            sort: "id DESC"
+        var page = req.param("page") ? parseInt(req.param("page").trim()) : 0;
+        var skip = page * pageSize;
+
+        var queryBody = searched == '' ? {} : {
+                Phenotype: {
+                    like: "%" + searched + "%"
+                }
+            };
+        Case.count(queryBody).then(function(num){
+            res.locals.finalPage = (num <= skip + pageSize);
+            queryBody.skip = skip;
+            queryBody.limit = pageSize;
+            queryBody.sort = "id DESC";
+
+            return Case.find(queryBody);
         }).then(function (cases) {
             res.locals.cases = cases;
             if (typeof req.session.userName == 'undefined' || req.session.userName == '') {
@@ -552,10 +561,10 @@ module.exports = {
                     }
                 }
             }
-            res.send(res.locals.cases);
+            res.send({cases: res.locals.cases, finalPage: res.locals.finalPage});
         }, function(err){
             if (err == 'user')
-                res.send(res.locals.cases);
+                res.send({cases: res.locals.cases, finalPage: res.locals.finalPage});
             else
                 next(err);
         });
@@ -567,14 +576,16 @@ module.exports = {
             return;
         }
         var id = req.param("id").trim();
+        var pass = false;
         Case.findOne({
             id: id
         }).then(function (aCase) {
+            if (aCase == undefined){
+                return Promise.reject('exist')
+            }
             res.locals.aCase = aCase;
-            res.locals.view = 'watch_case';
-            res.locals.navMod = 3;
             if (aCase.View == 'public' || aCase.Owner == req.session.userName){
-                return Promise.reject('pass');
+                pass = true;
             }
             return Request.find({
                 case: id,
@@ -582,18 +593,36 @@ module.exports = {
                 status: 'accepted'
             });
         }).then(function (requests){
-            if (requests.length < 1){
-                res.send('permission');
-                return;
+            if (requests.length > 0){
+                pass = true;
             }
+            if (!pass){
+                return Promise.reject('permission');
+            }
+            return CaseChrom.find({
+                id: id
+            });
+        }).then(function(caseChroms){
+            res.locals.caseChroms = caseChroms;
+
+            return CaseGene.find({
+                id: id
+            });
+        }).then(function(caseGenes){
+            res.locals.caseGenes = caseGenes;
+            res.locals.view = 'watch_case';
+            res.locals.navMod = 3;
+
             return quickTemplate(req, res);
-        }, function(err){
-            if (err == 'pass'){
-                return quickTemplate(req, res);
+        },function (err){
+            if (err == 'permission'){
+                return errTemplate(req, res, '抱歉，您没有权限浏览该病例。');
             }
-            else {
-                next(err);
+            if (err == 'exist'){
+                return errTemplate(req, res, '抱歉，该病例不存在。');
             }
+            console.log(err);
+            return next(err);
         });
     },
 
@@ -608,7 +637,6 @@ module.exports = {
             requester: req.session.userName,
             status: { '!': 'rejected' }
         }).then(function(requests){
-            console.log(requests);
             if (requests.length > 0){
                 return Promise.reject('pending');
             }
@@ -617,7 +645,7 @@ module.exports = {
                 status: 'pending',
                 case: id
             })
-        }).then(function(){
+        }).then(function(createdRequest){
             res.send('success')
         }, function(err) {
             if (err == 'pending'){
@@ -727,7 +755,6 @@ module.exports = {
     },
 
     upload: function(req, res, next) {
-        console.log(req.body);
         res.send(200);
     },
 
@@ -745,12 +772,64 @@ module.exports = {
             res.send('login');
             return;
         }
-        req.body.Owner = req.session.userName;
-        Case.create(req.body).then(function(aCase){
-            res.send('success');
-        }, function(err){
-            res.send('error');
+
+        req.file('pic').upload({
+            dirname : 'casePictures'
+        }, function (err, uploadedFiles) {
+            if (err) {
+                return res.send('error');
+            }
+            if (uploadedFiles.length > 0){
+                var fileName = uploadedFiles[0].fd;
+                req.body.Picture = fileName.substr(fileName.lastIndexOf('\\')+1, fileName.length);
+            }
+
+            req.body.Owner = req.session.userName;
+            var caseId;
+
+            Case.create(req.body).then(function(aCase) {
+                caseId = aCase.id;
+                if (req.body.chromsInput == '' || req.body.chromsInput == undefined) return;
+                var chromsInput = JSON.parse(req.body.chromsInput);
+                chromsInput.forEach(function (v, k) {
+                    v['id'] = caseId;
+                });
+                return CaseChrom.create(chromsInput);
+            }).then(function(chroms){
+                if (req.body.genesInput == '' || req.body.genesInput == undefined) return;
+                var genesInput = JSON.parse(req.body.genesInput);
+                genesInput.forEach(function (v, k){
+                    v['id'] = caseId;
+                });
+                return CaseGene.create(genesInput);
+            }).then(function(genes){
+                res.send('success');
+            }, function(err){
+                console.log(err);
+                res.send('error');
+            })
         });
+
+    },
+
+    casePicture: function(req, res, next) {
+        if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
+            return errTemplate(req,res,'访问出错，请登录。');
+        }
+        var id = req.param("id").trim();
+        fs.open(dynamicDir+'casePictures/'+id, 'r', function (err, fd){
+            if (err){
+                console.log(err);
+                return res.send('找不到该文件');
+            }
+            var readBuffer = new Buffer(2 * 1024 * 1024);
+            fs.read(fd, readBuffer, 0, readBuffer.length, 0, function (err, readBytes){
+                if (err) {
+                    return res.send('文件读取失败');
+                }
+                res.send(readBuffer);
+            })
+        })
     },
 
 

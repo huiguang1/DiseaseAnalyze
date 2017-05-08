@@ -2,16 +2,25 @@
 <script>
     var app = angular.module('myApp', []);
     app.controller('myCtrl', function($scope) {
-        $scope.searchCase = function () {
+        $scope.page = 0;
+        $scope.morePages = false;
+        $scope.searchCase = function (offset) {
+            if (arguments[0]){
+                if (!$scope.morePages && offset > 0) return;
+                if ($scope.page == 0 && offset < 0) return;
+                $scope.page += offset;
+            }
             $.ajax({
                 url : "/searchCase",
                 async: false,
                 data : {
-                    searched: $scope.searchedDisease
+                    searched: $scope.searchedDisease,
+                    page: $scope.page
                 },
                 type: 'GET',
-                success: function( cases ) {
-                    $scope.cases = cases;
+                success: function( data ) {
+                    $scope.cases = data.cases;
+                    $scope.morePages = !data.finalPage;
                 },
                 error: function() {
                     alert("网络连接异常");
@@ -49,6 +58,9 @@
     <input class="col-md-11 input-search" placeholder="<%-lan == 'eng' ? 'Please enter a symptom to search' : '请输入症状以进行检索'%>" ng-model="searchedDisease">
     <button class="btn btn-default col-md-1" id="search-case" ng-click="searchCase()"><%-lan == 'eng' ? 'Search' : '搜索'%></button>
 </div>
+<hr>
+<a href="javascript: void(0)" ng-click="searchCase(-1)">上一页</a>
+<a class="pull-right" href="javascript: void(0)" ng-click="searchCase(1)">下一页</a>
 <table class="table table-bordered table-striped dataTable" role="grid">
     <thead>
     <tr role="row">

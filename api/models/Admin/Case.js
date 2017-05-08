@@ -2,11 +2,13 @@ module.exports = {
     tableName: 'Web_cases',
     autoCreatedAt: false,
     autoUpdatedAt: false,
+    autoPK: false,
     attributes: {
         id: {
             type: 'integer',
             unique: true,
             primaryKey: true,
+            autoIncrement: true,
             columnName: 'Patient_Id'
         },
         CaseOrigin: {
@@ -40,6 +42,18 @@ module.exports = {
         Disease: {
             type: 'string',
             columnName: 'Disease'
+        },
+        Comment: {
+            type: 'string',
+            columnName: 'Comment'
+        },
+        Picture: {
+            type: 'string',
+            columnName: 'Picture'
+        },
+        PictureTag: {
+            type: 'string',
+            columnName: 'PictureTag'
         }
     }
 };

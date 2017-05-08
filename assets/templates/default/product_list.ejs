@@ -16,6 +16,274 @@
 <script src="<%=static_dir%>/js/cytoscape/panzoom.js"></script>
 <script src="<%=static_dir%>/js/cytoscape/network-onload-2.js"></script>
 
+<!-- angularJS -->
+<script>
+    var app = angular.module('myApp', []);
+    app.controller('myCtrl', function($scope) {
+        $scope.diseaseData = [];//搜索出的所有疾病详细数据，未分页，未过滤
+        $scope.diseaseFiltered = [];//过滤过的疾病的diseaseData index
+        $scope.selectedDisease = [];//保存勾选的疾病id
+        $scope.pageDisease = [];//当页显示的疾病的diseaseData index
+        $scope.diseaseSet = [];//勾选疾病的相关症状数据
+        $scope.pageDiseaseSet = [];//当页显示的症状数据
+
+        $scope.listErrMsg = 'loading';
+        $scope.isShowingAll = false;
+        $scope.showDetailed = 'detailed';
+        $scope.diseaseSetAction = 'intersection';
+        $scope.longestLength = eng == 1 ? 24 : 12;
+        $scope.filterName = '';
+        $scope.filterGene = '';
+        $scope.filterLocation = '';
+        $scope.filterLoad = false;
+        //过滤疾病
+        $scope.filterSubmit = function(){
+            var nameFilter = $scope.filterName.toUpperCase();
+            var geneFilter = $scope.filterGene.toUpperCase();
+            var locationFilter = $scope.filterLocation.toUpperCase();
+            var nameFilFun = nameFilter == '' ? function (name) { return true; } :
+                function (name) { return name.indexOf(nameFilter) > -1; };
+            var genesFilFun = geneFilter == '' && locationFilter == '' ? function (genes) { return true; }
+                : function (genes) {
+                    var geneFilFun = geneFilter == '' ? function (gene) { return true; } :
+                        function (gene) { return gene.indexOf(geneFilter) > -1; };
+                    var locationFilFun = locationFilter == '' ? function (loc) { return true; } :
+                        function (loc) { return loc.indexOf(locationFilter) > -1; };
+                    var geneFound = false;
+                    var locationFound = false;
+                    for (var i = 0;i < genes.length;i++){
+                        geneFound = geneFilFun(genes[i].gene) ? true : geneFound;
+                        locationFound = locationFilFun(genes[i].cytoband) ? true : locationFound;
+                        if (geneFound && locationFound) return true;
+                    }
+                    return false;
+                };
+            $scope.diseaseFiltered = [];
+            for (var i = 0;i < $scope.diseaseData.length;i++){
+                if (nameFilFun($scope.diseaseData[i].Name) && genesFilFun($scope.diseaseData[i].Genes)){
+                    $scope.diseaseFiltered.push(i);
+                }
+            }
+            alert('pagination start ');
+            $scope.filterLoad = true;
+            $scope.diseasePagination();
+            alert('pagination end ');
+            $('#filter-disease').hide();
+        }
+
+        //显示全部疾病
+        $scope.showAll = function (){
+            $scope.pageDisease = $scope.diseaseFiltered;
+            var $paginationDisease = $('#pagination-disease');
+            if ($paginationDisease.html() != '') {
+                $paginationDisease.pagination('destroy');
+            }
+            //获取热度图数据
+            var params = '';
+            for (var j = 0;j < searchedPhenotype.length;j++) {
+                params += 'HPO=' + searchedPhenotype[j] + '&';
+            }
+            params += 'eng=' + eng;
+            for (var i = 0;i < $scope.pageDisease.length;i++){
+                var dIndex = $scope.pageDisease[i];
+                $scope.getHeat(params, dIndex);
+            }
+        }
+
+        //跳转至病例详情页
+        $scope.gotoDisease = function (dIndex) {
+            var href = '/disease/' + $scope.diseaseData[dIndex].ID;
+            if (searchedPhenotype.length > 0){
+                href += '?HPO=' + JSON.stringify(searchedPhenotype);
+            }
+            window.open(href);
+        }
+
+        //更换详细/简要症状描述
+        $scope.swapDescription = function (symptom) {
+            var tmp = symptom.description;
+            symptom.description = symptom.longDescription;
+            symptom.longDescription = tmp;
+        }
+
+        //更新症状列表
+        $scope.refreshTable = function () {
+            if ($scope.selectedDisease.length == 0){
+                $scope.diseaseSet = [];
+                return;
+            }
+            $.ajax({
+                url: 'http://202.121.178.141/cgi-bin/MDPA/DiseaseSet.cgi',
+                data: {
+                    OMIM: $scope.selectedDisease,
+                    action: $scope.diseaseSetAction,
+                    eng: eng
+                },
+                success: function(data){
+                    $scope.$apply(function() {
+                        $scope.diseaseSet = $.parseJSON(data);
+                    });
+                    if ($scope.diseaseSet.length == 0){
+                        return;
+                    }
+                    $('#pagination-phenotype').pagination({
+                        dataSource: $scope.diseaseSet,//数据源，此处为数组
+                        pageSize: 5,//每页显示的数量
+                        hideWhenLessThanOnePage: true, //少于一页时隐藏分页
+                        //pageRange: 9, 在本页页码单侧最多显示的页数
+                        callback: function(data, pagination) {
+                            $scope.$apply(function () {
+                                $scope.pageDiseaseSet = data;
+                                //为描述过长的症状项准备简短描述
+                                for (var i = 0;i < $scope.pageDiseaseSet.length;i++){
+                                    if ($scope.pageDiseaseSet[i].description.length > $scope.longestLength){
+                                        $scope.pageDiseaseSet[i].longDescription = $scope.pageDiseaseSet[i].description;
+                                        $scope.pageDiseaseSet[i].description =
+                                            $scope.pageDiseaseSet[i].description.substr(0, $scope.longestLength);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            })
+        }
+
+        //疾病勾选框点击事件，刷新相关症状
+        $scope.onCheckSwitch = function (dIndex) {
+            var selectIndex = $scope.selectedDisease.indexOf($scope.diseaseData[dIndex].ID);
+            if (selectIndex == -1){
+                $scope.selectedDisease.push($scope.diseaseData[dIndex].ID);
+            } else {
+                $scope.selectedDisease.splice(selectIndex, 1);
+            }
+            $scope.refreshTable();
+        }
+
+        //弹出网络图的伪函数，ng-click连接需要
+        $scope.buildNetwork = function (sid, tid){
+            buildNetwork(sid, tid);
+        }
+
+        //向搜索栏中添加一项的伪函数，ng-click连接需要
+        $scope.addSelect = function (key, chname){
+            addSelect(key, chname);
+        }
+
+        //获取热度图数据
+        $scope.getHeat = function (params, dIndex) {
+            if ($scope.diseaseData[dIndex].heat != undefined){
+                return;
+            }
+            $.ajax({
+                type: 'GET',
+                url: 'http://202.121.178.141/cgi-bin/MDPA/InputScore.cgi',
+                data: params + '&disID=' + $scope.diseaseData[dIndex].ID,
+                success: function (data) {
+                    var raw = $.parseJSON(data).Relations;
+                    if (raw.length == 0) return;
+                    $scope.$apply(function() {
+                        $scope.diseaseData[dIndex].heat = [];
+                        for (var k = 0;k < raw.length;k++) {
+                            var green = parseInt(127+128 * (1-raw[k].similarity));
+                            var blue = parseInt(127+128 * raw[k].similarity);
+                            $scope.diseaseData[dIndex].heat[k] = {
+                                css: {
+                                    'background': 'rgb(127, '+ green +', '+ blue + ')'
+                                },
+                                title: raw[k].source + '->' + raw[k].target,
+                                SID: raw[k].SID,
+                                TID: raw[k].TID
+                            };
+                        }
+                    });
+                }
+            });
+        }
+
+        //疾病过滤结果刷新，重构症状列表、分页、相关症状
+        $scope.diseasePagination = function(){
+            var $paginationDisease = $('#pagination-disease');
+            if ($scope.diseaseFiltered.length == 0) {
+                $scope.listErrMsg = 'filter';
+                if ($paginationDisease.html() != '') {
+                    $paginationDisease.pagination('destroy');
+                }
+                return;
+            }
+            $scope.listErrMsg = '';
+            for (var i = 0; i < $scope.diseaseFiltered.length; i++) {
+                $scope.diseaseData[$scope.diseaseFiltered[i]].checked = false;
+            }
+            $scope.selectedDisease = [];
+            $scope.diseaseSet = [];
+            $scope.refreshTable();
+            $scope.isShowingAll = false;
+            $paginationDisease.pagination({
+                dataSource: $scope.diseaseFiltered,//数据源
+                pageSize: 10,//每页显示的数量
+                pageRange: 9, //在本页页码单侧最多显示的页数
+                callback: function(data, pagination) {
+                    //pagination的第一次callback是同步的，此时使用$apply会出错。
+                    if ($scope.filterLoad){
+                        $scope.filterLoad = false;
+                        $scope.pageDisease = data;
+                    } else {
+                        $scope.$apply(function (){
+                            $scope.pageDisease = data;
+                        })
+                    }
+                    //获取热度图数据
+                    var params = '';
+                    for (var j = 0;j < searchedPhenotype.length;j++) {
+                        params += 'HPO=' + searchedPhenotype[j] + '&';
+                    }
+                    params += 'eng=' + eng;
+                    for (var i = 0;i < $scope.pageDisease.length;i++){
+                        var dIndex = $scope.pageDisease[i];
+                        $scope.getHeat(params, dIndex);
+                    }
+                }
+            });
+        }
+
+        //获取疾病数据
+        var getDisease = function (){
+            var $searchBox = $('#sel_menu2');
+            if ($searchBox.children().length === 0) {
+                $scope.listErrMsg = 'result'
+                return;
+            }
+            var data="";
+            for (var i = 0;i < $searchBox.children().length;i++) {
+                data += 'HPO=' + $searchBox.children()[i].value + '&';
+            }
+            data += 'guid=' + '<%-guid%>';
+            $.ajax({
+                type: 'GET',
+                url: 'http://202.121.178.141/cgi-bin/MDPA/GPSEngine.cgi',
+                data: data,
+                success: function (data) {
+                    $('#radio-disease').show();
+                    $scope.diseaseData = $.parseJSON(data);
+                    //$apply会执行作为参数的函数，完成后会更新视图，以免pagination找不到标签而出错
+                    $scope.$apply(function (){
+                        for (var i = 0;i < $scope.diseaseData.length;i++){
+                            $scope.diseaseFiltered[i] = i;
+                        }
+                    });
+                    $scope.diseasePagination();
+                },
+                error: function () {
+                    $scope.listErrMsg = 'connection'
+                }
+            });
+        };
+
+        getDisease();
+    });
+</script>
+
 <DIV id="network-data" style="display: none;"></DIV>
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog" id="picDialog">
@@ -40,7 +308,7 @@
     </div><!-- /.modal -->
 </div>
 <script>
-    <!--获取网络图片所需数据并显示弹窗-->
+    //获取网络图数据并弹出
     function buildNetwork(source, target){
         var params = '?HPO=' + source;
         params += '&HPO=' + target;
@@ -69,43 +337,15 @@
             function hideFilter(){
                 $('#filter-disease').hide();
             }
-            //进行疾病及基因的过滤，刷新疾病列表
-            function filterSubmit(){
-                var nameFilter = $('#filter-name').val().toUpperCase();
-                var geneFilter = $('#filter-gene').val().toUpperCase();
-                var locationFilter = $('#filter-location').val().toLowerCase();
-                var nameFilFun = nameFilter == '' ? function (name) { return true; } :
-                        function (name) { return name.indexOf(nameFilter) > -1; };
-                var genesFilFun = geneFilter == '' && locationFilter == '' ? function (genes) { return true; }
-                        : function (genes) {
-                    var geneFilFun = geneFilter == '' ? function (gene) { return true; } :
-                            function (gene) { return gene.indexOf(geneFilter) > -1; };
-                    var locationFilFun = locationFilter == '' ? function (loc) { return true; } :
-                            function (loc) { return loc.indexOf(locationFilter) > -1; };
-                    var geneFound = false;
-                    var locationFound = false;
-                    for (var i = 0;i < genes.length;i++){
-                        geneFound = geneFilFun(genes[i].gene) ? true : geneFound;
-                        locationFound = locationFilFun(genes[i].cytoband) ? true : locationFound;
-                        if (geneFound && locationFound) return true;
-                    }
-                    return false;
-                };
-                diseaseFiltered = $.grep(diseaseData, function(value){
-                    return nameFilFun(value.Name) && genesFilFun(value.Genes);
-                });
-                diseasePagination();
-                $('#filter-disease').hide();
-            }
         </script>
         <!--显示疾病时可选择显示精简信息或者详细信息。可以直接显示所有结果，还可进行过滤。-->
         <div id="radio-disease" class="row" hidden>
             <div class="col-md-7">
-                <input id="show-detailed" value="detailed" name="showAmount" type="radio" onchange="refreshDisease()" checked>
+                <input value="detailed" name="showAmount" type="radio" ng-model="showDetailed">
                 <% if (lan == 'eng') { %>Show detailed info<% } else { %>显示详细信息<% } %>
-                <input id="show-concise" value="concise" name="showAmount" type="radio" onchange="refreshDisease()">
+                <input value="concise" name="showAmount" type="radio" ng-model="showDetailed">
                 <% if (lan == 'eng') { %>Show concise info<% } else { %>显示精简信息<% } %>
-                <a href="javascript:void(0);" id="show-all" onclick="showAll();">
+                <a href="javascript:void(0);" ng-if="!isShowingAll" ng-click="showAll();">
                     <% if (lan == 'eng') { %>Show all<% } else { %>显示全部<% } %>
                 </a>
                 <a href="javascript:void(0);" id="show-filter" onclick="showFilter();">
@@ -118,17 +358,17 @@
                         <div class="col-md-4 info-input">
                             <% if (lan == 'eng') { %>Disease: <% } else { %>疾病名称：<% } %>
                         </div>
-                        <div class="col-md-8 input-div"><input id="filter-name" class="filter-input" autocomplete="off"></div>
+                        <div class="col-md-8 input-div"><input ng-model="filterName" class="filter-input" autocomplete="off"></div>
                         <div class="col-md-4 info-input">
                             <% if (lan == 'eng') { %>Gene: <% } else { %>基因名称：<% } %>
                         </div>
-                        <div class="col-md-8 input-div"><input id="filter-gene" class="filter-input" autocomplete="off"></div>
+                        <div class="col-md-8 input-div"><input ng-model="filterGene" class="filter-input" autocomplete="off"></div>
                         <div class="col-md-4 info-input">
                             <% if (lan == 'eng') { %>Cytoband: <% } else { %>基因位置：<% } %>
                         </div>
-                        <div class="col-md-8 input-div"><input id="filter-location" class="filter-input" autocomplete="off"></div>
+                        <div class="col-md-8 input-div"><input ng-model="filterLocation" class="filter-input" autocomplete="off"></div>
                     </div>
-                    <input id="filter-submit" type='button' value="<% if (lan == 'eng') { %>Go<% } else { %>过滤<% } %>" class="btn btn-primary" onclick="filterSubmit()">
+                    <input id="filter-submit" type='button' value="<% if (lan == 'eng') { %>Go<% } else { %>过滤<% } %>" class="btn btn-primary" ng-click="filterSubmit()">
                     <br/>
                     <a id='filter-cancel' href="javascript:void(0);" onclick="hideFilter();"><% if (lan == 'eng') { %>Cancel<% } else { %>取消<% } %></a>
                 </div>
@@ -136,281 +376,75 @@
         </div>
         <!--逐条显示疾病-->
         <div id="diseaseList">
-            <% if (lan == 'eng') { %>Loading search result, please wait...<% } else { %>搜索结果加载中，请稍候……<% } %>
+            <h3 ng-if="listErrMsg=='loading'">
+                <% if (lan == 'eng') { %>Loading search result, please wait...<% } else { %>搜索结果加载中，请稍候……<% } %>
+            </h3>
+            <h3 ng-if="listErrMsg=='filter'">
+                <% if (lan == 'eng') { %>No result, try other keywords in filter<% } else { %>无过滤结果，请用其他关键词进行过滤<% } %>
+            </h3>
+            <a href="/index" ng-if="listErrMsg=='result'">
+                <%-lan=='eng' ? 'No result found. Click to jump to home page' : '没有找到结果，点击返回搜索页'%>
+            </a>
+            <a href="/index" ng-if="listErrMsg=='connection'">
+                <%-lan=='eng' ? 'Error. Click to jump to home page' : '网络连接异常，点击返回搜索页'%>
+            </a>
+
+            <div class="block-disease" ng-if="diseaseFiltered.length > 0"
+                 ng-repeat="dIndex in (isShowingAll ? diseaseFiltered : pageDisease)">
+                <div class="title-disease"><!--标题块-->
+                    <input type="checkbox" ng-model="diseaseData[dIndex].checked" ng-click="onCheckSwitch(dIndex)">
+                    <a href="javascript: void(0);" ng-click="gotoDisease(dIndex)">
+                        {{ diseaseData[dIndex].NO }}. {{ diseaseData[dIndex].Name }}
+                    </a>
+                    &nbsp;
+                    <i ng-if="diseaseData[dIndex].pvalue != undefined">
+                        (Score: {{ diseaseData[dIndex].Score }}, P-value: {{ diseaseData[dIndex].pvalue }})
+                    </i>
+                    <i ng-if="diseaseData[dIndex].pvalue == undefined">
+                        (Score: {{ diseaseData[dIndex].Score }})
+                    </i>
+                </div>
+                <div class="heat-disease row noMargin" ng-if="diseaseData[dIndex].heat != undefined"><!--热度图-->
+                    <div class="block-color col-md-1" ng-repeat="heat in diseaseData[dIndex].heat"
+                         ng-style="heat.css" title="{{heat.title}}"
+                         ng-click="buildNetwork(heat.SID, heat.TID)"></div>
+                </div>
+                <div class="description-disease" ng-if="showDetailed == 'detailed' && diseaseData[dIndex].Description != 'NULL'">
+                    {{ diseaseData[dIndex].Description }}
+                </div>
+                <div class="gene-disease"
+                     ng-if="showDetailed == 'detailed' && diseaseData[dIndex].Genes != undefined && diseaseData[dIndex].Genes.length > 0">
+                    <b>Gene(Cytogenetic location):</b>
+                    <a target="_blank" href="{{ '/gene/' + gene.gene }}" ng-repeat="gene in diseaseData[dIndex].Genes">
+                        {{ gene.gene + '(' + gene.cytoband + ');' }}
+                    </a>
+                </div>
+                <div class="others-disease" ng-if="showDetailed == 'detailed'">
+                    <a target="_blank" href="{{ 'https://omim.org/entry/'+diseaseData[dIndex].ID }}">
+                        <b>OMIM: {{ diseaseData[dIndex].ID }}</b>
+                    </a>
+                </div>
+            </div>
         </div>
         <div id="pagination-disease"></div>
     </div>
     <div class="col-md-4">
         <div class="sticky-right col-md-3">
             <script type="text/javascript">
-                var checkedDisease = [];
-                var selectedDisease = [];
-                var searchedPhenotype = [];
-                var longDescription = [];
-                var diseaseData;
-                var diseaseFiltered;
-                //跳转至疾病详情页
-                function gotoDisease(id){
-                    var href = '/disease/'+id;
-                    if (searchedPhenotype.length > 0){
-                        href += '?HPO=' + JSON.stringify(searchedPhenotype);
-                    }
-                    window.open(href);
-                }
-                //切换疾病的精简、详细
-                function refreshDisease(){
-                    if ($("input[name='showAmount']:checked").val() == 'concise'){
-                        $('.description-disease').hide();
-                        $('.gene-disease').hide();
-                        $('.others-disease').hide();
-                    } else {
-                        $('.description-disease').show();
-                        $('.gene-disease').show();
-                        $('.others-disease').show();
-                    }
-                }
-                //切换症状描述的精简、详细
-                function openDescription(index) {
-                    var $description = $('#description-' + index);
-                    var tmpDescription = $description.html();
-                    $description.html(longDescription[index]);
-                    longDescription[index] = tmpDescription;
-                }
-                //更新症状列表
-                function refreshTable(){
-                    $.ajax(
-                            {
-                                type : 'GET',
-                                url : 'http://202.121.178.141/cgi-bin/MDPA/DiseaseSet.cgi',
-                                data : {
-                                    OMIM: selectedDisease,
-                                    action: $("input[name='showType']:checked").val(),
-                                    eng: eng
-                                },
-                                success : function(data)
-                                {
-                                    var raw = $.parseJSON(data);
-                                    //当没有相应症状时，隐藏列表及其相关元素
-                                    var $pagination = $('#pagination-phenotype');
-                                    var $radio = $('#radio-phenotype');
-                                    var $table = $('#table-phenotype');
-                                    var $label = $('#table-tip');
-                                    if (raw.length == 0){
-                                        $radio.hide();
-                                        $table.hide();
-                                        $pagination.hide();
-                                        $label.show();
-                                        return;
-                                    }
-                                    //否则显示他们
-                                    $table.show();
-                                    $radio.show();
-                                    $pagination.show();
-                                    $label.hide();
-                                    $pagination.pagination({
-                                        dataSource: raw,//数据源，此处为数组
-                                        pageSize: 5,//每页显示的数量
-                                        hideWhenLessThanOnePage: true, //少于一页时隐藏分页
-                                        //pageRange: 9, 在本页页码单侧最多显示的页数
-                                        callback: function(data, pagination) {
-                                            var html = '';
-                                            for (var i = 0;i < data.length;i++){
-                                                html += '<tr role="row" class="color-palette">';
-                                                html += '<td><a href="javascript:void(0);" onclick="addSelect(\''+data[i].key+'\',\''+data[i].chname+'\')">'+
-                                                        data[i].chname+'</a></td>';
-                                                var tmpDescription = data[i].description;
-                                                if (tmpDescription == undefined || tmpDescription == 'NULL') tmpDescription = '';
-                                                //当描述过长时，缩为一行，可以点击按钮展开或收起
-                                                var longestLength = eng == 1 ? 24 : 12;
-                                                if (tmpDescription.length > longestLength) {
-                                                    longDescription[i] = tmpDescription;
-                                                    longDescription[i] += '<a href="javascript:void(0)" onclick="openDescription('
-                                                        + i + ')">«</a>';
-                                                    tmpDescription = tmpDescription.substr(0, longestLength);
-                                                    tmpDescription += '…<a href="javascript:void(0)" onclick="openDescription('
-                                                        + i + ')">»</a>';
-                                                }
-                                                html += '<td id="description-'+i+'">'+tmpDescription+'</td>';
-                                                html += '</tr>';
-                                            }
-                                            $('#tableBody').html(html);
-                                        }
-                                    });
-                                },
-                                error : function()
-                                {
-                                    alert("网络连接异常");
-                                }
-                            }
-                    );
-                }
-                //根据勾选的疾病，更新症状列表的内容
-                function addDisease(checkBox, ID, index){
-                    if (checkBox.checked){//选中某疾病
-                        checkedDisease[index] = 1;//保存勾选框状态
-                        if (selectedDisease.indexOf(ID) == -1) selectedDisease.push(ID);//保存选中的疾病ID
-                    } else {//反选某疾病
-                        checkedDisease[index] = 0;
-                        selectedDisease.splice(selectedDisease.indexOf(ID), 1);
-                    }
-                    //更新症状列表
-                    refreshTable();
-                }
-                //根据传入的数据构造疾病列表块
-                function constructDisease(data, offset){
-                    var html = '';
-                    for (var i = 0;i < data.length;i++){
-                        //载入checkbox状态。
-                        var index = offset + i;
-                        var checked = checkedDisease[index] > 0 ?
-                                'checked' : '';
+                var searchedPhenotype = [];//初始搜索关键字
 
-                        html += '<div class="block-disease" id="block-disease-'+data[i].ID+'">';
-                        //标题块
-                        html += '<div class="title-disease">';
-                        html += '<input id="disease-'+data[i].ID+'" type="checkbox" ' +
-                                'onclick="addDisease(this, ' + data[i].ID + ', ' + index + ')" ' + checked + '>';
-                        html += '<a href="javascript:void(0);" onclick="gotoDisease(\''+data[i].ID+'\')">'
-                                + data[i].NO + '. ' + data[i].Name + '</a>';
-                        html += '&nbsp;<i>(Score: ' + data[i].Score;
-                        if (typeof(data[i].pvalue) != 'undefined') {
-                            html += ', P-value: ' + data[i].pvalue;
-                        }
-                        html +=  ')</i></div>';
-                        //症状关联热度图
-                        html += '<div class="heat-disease row noMargin"></div>';
-                        var params = '';
-                        for (var j = 0;j < searchedPhenotype.length;j++) {
-                            params += 'HPO=' + searchedPhenotype[j] + '&';
-                        }
-                        params += 'disID=' + data[i].ID;
-                        params += '&eng=' + eng;
-                        $.ajax(
-                            {
-                                type : 'GET',
-                                url : 'http://202.121.178.141/cgi-bin/MDPA/InputScore.cgi',
-                                data : params,
-                                success : function(data)
-                                {
-                                    var parsed = $.parseJSON(data);
-                                    var raw = parsed.Relations;
-                                    var colorBlocks = '';
-                                    for (var k = 0;k < raw.length;k++) {
-                                        var green = parseInt(127+128 * (1-raw[k].similarity));
-                                        var blue = parseInt(127+128 * raw[k].similarity);
-                                        colorBlocks += '<div class="block-color col-md-1" style="background: rgb(127,'+green+','+
-                                            blue+');" title="'+raw[k].source+'->'+raw[k].target+'" ' +
-                                            'onclick="buildNetwork(\''+raw[k].SID+'\',\''+raw[k].TID+'\');"></div>';
-                                    }
-                                    $('#block-disease-'+parsed.ID).children('.heat-disease').html(colorBlocks);
-                                },
-                                error : function()
-                                {
-                                    alert('网络连接异常');
-                                }
-                            });
-                        //描述块
-                        if (data[i].Description && data[i].Description != 'NULL') {
-                            html += '<div class="description-disease">';
-                            html += data[i].Description;
-                            html += '</div>';
-                        }
-                        //基因块
-                        if (data[i].Genes && data[i].Genes.length > 0) {
-                            html += '<div class="gene-disease"><b>Gene(Cytogenetic location): </b>';
-                            for (j = 0; j < data[i].Genes.length; j++) {
-                                html += '<a target="_blank" href="/gene/'+data[i].Genes[j].gene+'">'
-                                        + data[i].Genes[j].gene + '(' + data[i].Genes[j].cytoband + '); </a>';
-                            }
-                            html += '</div>';
-                        }
-                        //其他信息块(OMIM，分数)
-                        html += '<div class="others-disease"><a target="_blank"' +
-                                'href="https://omim.org/entry/'+data[i].ID+'"><b>OMIM:' + data[i].ID + '</b></a>'
-                        html += '</div>';
-                        html += '</div>';
-                    }
-                    $('#diseaseList').html(html);
-                    refreshDisease();
-                    window.scrollTo(0,0);
-                }
-                function showAll(){
-                    $('#show-all').hide();
-                    $('#pagination-disease').hide();
-                    constructDisease(diseaseFiltered, 0);
-                }
-                function diseasePagination(){
-                    var $paginationDisease = $('#pagination-disease');
-                    if (diseaseFiltered.length <= 0){
-                        $paginationDisease.hide();
-                        $('#diseaseList').html('');
-                        return;
-                    }
-                    for (var i = 0;i < diseaseFiltered.length;i++){
-                        checkedDisease[i] = 0;
-                    }
-                    selectedDisease = [];
-                    refreshTable();
-
-                    $('#show-all').show();
-                    $paginationDisease.show();
-                    $paginationDisease.pagination({
-                        dataSource: diseaseFiltered,//数据源，此处为数组
-                        pageSize: 10,//每页显示的数量
-                        pageRange: 9, //在本页页码单侧最多显示的页数
-                        callback: function(data, pagination) {
-                            var offset = pagination.pageNumber * 10 - 10;
-                            constructDisease(data, offset);
-                        }
-                    });
-                }
                 $(document).ready(function() {
                     //弹出的对话框用于显示症状关系网络图
                     $('#myModal').on('shown.bs.modal', buildCY).on('hide.bs.modal', function(){
                         $('.qtip-pos-bl').remove();
                     });
-                    //隐藏症状列表
-                    $('#radio-phenotype').hide();
-                    $('#table-phenotype').hide();
                     //保存初始搜索关键字
                     var $searchBox = $('#sel_menu2');
                     for (var i = 0;i < $searchBox.children().length;i++){
                         searchedPhenotype.push($searchBox.children()[i].value);
                     }
 
-                    //载入疾病
-                    var $diseaseList = $('#diseaseList');
-                    if ($searchBox.children().length === 0) {
-                        $diseaseList.html('<a href="/index">' +
-                            (eng == 1 ? 'No result found. Click to jump to home page' : '没有找到结果，点击返回搜索页') +
-                            '</a>');
-                        return;
-                    }
-                    var data="";
-                    for (i = 0;i < $searchBox.children().length;i++) {
-                        data += 'HPO=' + $searchBox.children()[i].value + '&';
-                    }
-                    data += 'guid=' + '<%-guid%>';
-                    $.ajax(
-                            {
-                                type : 'GET',
-                                url : 'http://202.121.178.141/cgi-bin/MDPA/GPSEngine.cgi',
-                                data : data,
-                                success : function(data)
-                                {
-                                    $('#radio-disease').show();
-                                    diseaseData = $.parseJSON(data);
-                                    diseaseFiltered = diseaseData;
-                                    diseasePagination();
-                                },
-                                error : function()
-                                {
-                                    $diseaseList.html('<a href="/index">' +
-                                        (eng == 1 ? 'Error. Click to jump to home page' : '网络连接异常，点击返回搜索页') +
-                                        '</a>');
-                                }
-                            });
-
+                    //Select2插件初始化
                     $searchBox.select2({
                         multiple:true,
                         placeholder: eng == 1 ? 'Please enter phenotype name or ID' : '请输入症状名或症状ID',
@@ -448,6 +482,7 @@
                         templateSelection:formatRepoSelection
                     });
                 });
+                //select2辅助函数
                 function formatRepo(repo)
                 {
                     if (repo.loading) return repo.text;
@@ -455,6 +490,7 @@
                     var markup = '<option class="select2-option-click" value='+repo.id+'>'+ repo.id+'|'+repo.text+'</option>';
                     return markup;
                 }
+                //select2辅助函数
                 function formatRepoSelection(repo){
                     repo.selected = true;
                     repo.name = repo.id
@@ -472,34 +508,6 @@
                     if ($.inArray(ID, $searchBox.val()) != -1) return;
                     var op1 = '<option value="'+ID+'" selected>'+name+'</option>'
                     $searchBox.append(op1).trigger("change");
-                }
-
-                //从搜索栏中删除一项
-                function rmvSelect(id){
-                    var $searchBox = $('#sel_menu2');
-                    var found = 0;
-                    for (var i in $searchBox.children())
-                    {
-                        if ($searchBox.children()[i].value == "HP:" + id)
-                        {
-                            $searchBox.children()[i].remove();
-                            found = 1;
-                            break;
-                        }
-                    }
-                    for (var i in $searchBox.children())
-                    {
-                        if ($searchBox.children()[i].value == "HP:" + id)
-                        {
-                            $searchBox.children()[i].remove();
-                            found = 1;
-                            break;
-                        }
-                    }
-                    if (found === 1)
-                    {
-                        $searchBox.trigger('change');
-                    }
                 }
 
                 //提交表格。每一个搜索项包含ID和名称。
@@ -528,19 +536,19 @@
                 </div>
             </FORM>
             <!--疾病对应的症状列表-->
-            <label id="table-tip">
+            <label ng-if="diseaseSet.length == 0">
                 <br/>
                 <br/>
                 <% if (lan == 'eng') { %>Check the diseases on the left to view related phenotype<% } else { %>勾选左侧疾病名即可查看相关症状<% } %>
             </label>
-            <div id="radio-phenotype">
-                <input id="show-union" value="intersection" name="showType" type="radio" onchange="refreshTable()" checked>
+            <div>
+                <input value="intersection" name="showType" type="radio" ng-model="diseaseSetAction" ng-change="refreshTable()">
                 <% if (lan == 'eng') { %>Show mutual phenotypes only<% } else { %>只显示共有症状<% } %>
-                <input id="show-nonUnion" value="unique" name="showType" type="radio" onchange="refreshTable()">
+                <input value="unique" name="showType" type="radio" ng-model="diseaseSetAction" ng-change="refreshTable()">
                 <% if (lan == 'eng') { %>Show non-mutual phenotypes only<% } else { %>只显示非共有症状<% } %>
             </div>
-            <div id="pagination-phenotype"></div>
-            <table id="table-phenotype" class="table table-bordered table-striped dataTable" role="grid">
+            <div id="pagination-phenotype" ng-if="diseaseSet.length > 0"></div>
+            <table class="table table-bordered table-striped dataTable" role="grid" ng-if="diseaseSet.length > 0">
                 <thead>
                 <tr role="row">
                     <th title="<% if (lan == 'eng') { %>Name of the phenotype<% } else { %>症状名<% } %>" class="col-md-4">
@@ -551,7 +559,22 @@
                     </th>
                 </tr>
                 </thead>
-                <tbody id="tableBody"></tbody>
+                <tbody>
+                <tr role="row" class="color-palette" ng-repeat="symptom in pageDiseaseSet">
+                    <td>
+                        <a href="javascript: void(0);" ng-click="addSelect(symptom.key, symptom.chname)">
+                            {{ symptom.chname }}
+                        </a>
+                    </td>
+                    <td>
+                        {{ symptom.description == 'NULL' ? '' : symptom.description }}
+                        {{ symptom.longDescription && symptom.description.length <= longestLength ? '...' : '' }}
+                        <a href="javascript:void(0)" ng-click="swapDescription(symptom)" ng-if="symptom.longDescription">
+                            {{ symptom.description.length > longestLength ? '«' : '»' }}
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
             </table>
         </div>
     </div>
