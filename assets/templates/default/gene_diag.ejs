@@ -101,11 +101,10 @@
             }
             $scope.diagnoseInfo = '文件正在上传和分析中，请耐心等候……';
             $.ajax({
-                url : "/???",
+                url : "http://202.121.178.141/cgi-bin/MDPA/VarUpload.cgi",
                 async: false,
                 data : {
-                    newFiles: $scope.files,
-
+                    newFiles: $scope.files
                 },
                 type: 'POST',
                 success: function( data ) {
