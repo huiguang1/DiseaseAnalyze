@@ -37,9 +37,11 @@
             $('#contentNewFile').hide();
             switch ($scope.type){
                 case 'gene':
+                    $scope.genes = [];
                     $('#contentNewGene').show();
                     break;
                 case 'chromosome':
+                    $scope.chroms = [];
                     $('#contentNewChromosome').show();
             }
         };
@@ -83,7 +85,7 @@
             $scope.genes.splice($scope.genes.indexOf(gene), 1);
         };
 
-        //完成一个染色体变异文件的创建
+        //完成一个染色体变异文件的创建或修改
         $scope.saveChromosome = function(){
             if ($scope.chroms.length == 0){
                 return alert('请先添加染色体变异数据！');
@@ -110,7 +112,7 @@
             $('#myModal').modal('hide');
         };
 
-        //完成一个基因变异文件的创建
+        //完成一个基因变异文件的创建或修改
         $scope.saveGene = function(){
             if ($scope.genes.length == 0){
                 return alert('请添加基因变异数据！');
