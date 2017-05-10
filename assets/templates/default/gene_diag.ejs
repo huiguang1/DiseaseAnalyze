@@ -8,6 +8,22 @@
         $scope.chroms = [];
         $scope.genes = [];
 
+        //查看创建好的文件
+        $scope.viewFile = function(file){
+            ifNew = false;
+            $('#myModal').modal('show');
+            $scope.fileName = file.name;
+            switch (file.type){
+                case 'gene':
+                    $('#contentNewGene').show();
+                    $scope.genes = file.genes;
+                    break;
+                case 'chromosome':
+                    $('#contentNewChromosome').show();
+                    $scope.chroms = file.chroms;
+            }
+        }
+
         //检查文件名称是否存在，然后切换至次级窗体
         $scope.openForm = function(){
             if ($scope.fileName == ''){
@@ -47,9 +63,13 @@
             if ($scope.gene == ''){
                 return alert('请输入基因名！');
             }
-            $scope.genes.push({
-                Name: $scope.gene
-            });
+            var genes = $scope.gene.split(';');
+            for (var i = 0;i < genes.length;i++){
+                if (genes[i].trim() != '')
+                $scope.genes.push({
+                    Name: genes[i].trim()
+                });
+            }
             $scope.gene = '';
         };
 
@@ -68,6 +88,16 @@
             if ($scope.chroms.length == 0){
                 return alert('请先添加染色体变异数据！');
             }
+            for (var i = 0;i < $scope.files.length;i++){
+                if ($scope.files[i].name == $scope.fileName){
+                    //修改现存文件
+                    $scope.files[i].chroms = $scope.chroms;
+                    $scope.chroms = [];
+                    $scope.fileName = '';
+                    $('#myModal').modal('hide');
+                    return;
+                }
+            }
             $scope.files.push({
                 name: $scope.fileName,
                 type: $scope.type,
@@ -76,13 +106,24 @@
                 valid: true
             });
             $scope.chroms = [];
+            $scope.fileName = '';
             $('#myModal').modal('hide');
         };
 
         //完成一个基因变异文件的创建
         $scope.saveGene = function(){
             if ($scope.genes.length == 0){
-                return alert('请先添加基因变异数据！');
+                return alert('请添加基因变异数据！');
+            }
+            for (var i = 0;i < $scope.files.length;i++){
+                if ($scope.files[i].name == $scope.fileName){
+                    //修改现存文件
+                    $scope.files[i].genes = $scope.genes;
+                    $scope.genes = [];
+                    $scope.fileName = '';
+                    $('#myModal').modal('hide');
+                    return;
+                }
             }
             $scope.files.push({
                 name: $scope.fileName,
@@ -92,6 +133,7 @@
                 valid: true
             });
             $scope.genes = [];
+            $scope.fileName = '';
             $('#myModal').modal('hide');
         };
 
@@ -104,7 +146,10 @@
                 url : "http://202.121.178.141/cgi-bin/MDPA/VarUpload.cgi",
                 async: false,
                 data : {
-                    newFiles: $scope.files
+                    gender: $scope.gender,
+                    age: $scope.age,
+                    inheritance: $scope.inheritance,
+                    newFiles: JSON.stringify($scope.files)
                 },
                 type: 'POST',
                 success: function( data ) {
@@ -219,12 +264,12 @@
                     &times;
                 </button>
                 <h4 class="modal-title">
-                    <% if (lan == 'eng') { %>New gene variation<% } else { %>新增基因变异<% } %>
+                    <% if (lan == 'eng') { %>gene variation<% } else { %>基因变异<% } %>
                 </h4>
             </div>
             <div class="modal-body">
                 <label><% if (lan == 'eng') { %>Gene name<% } else { %>基因名<% } %>
-                    <input ng-model="gene" ng-init="gene=''">
+                    <input ng-model="gene" ng-init="gene=''" placeholder="多个可用“;”隔开">
                 </label>
                 <button ng-click="addGene()"><% if (lan == 'eng') { %>Add<% } else { %>添加<% } %></button>
                 <table ng-if="genes.length>0" class="table table-bordered table-striped dataTable" role="grid">
@@ -284,12 +329,15 @@
     <script src="<%=static_dir%>/js/xlsx.core.min.js"></script>
     <script src="<%=static_dir%>/js/caseUploader.js"></script>
     <script>
-        var geneFiles = [];
-        var chromosomeEntries = [];
+        var ifNew = true;
         $(document).ready(function() {
             //注册myModal打开和关闭事件
             $('#myModal').on('shown.bs.modal', function() {
-                $('#contentNewFile').show();
+                if (ifNew) {
+                    $('#contentNewFile').show();
+                } else {
+                    ifNew = true;
+                }
             }).on('hide.bs.modal', function(){
                 $('#contentNewFile').hide();
                 $('#contentNewChromosome').hide();
@@ -460,11 +508,14 @@
     <table class="table table-bordered table-striped dataTable" role="grid" ng-if="files.length > 0">
         <thead>
         <tr role="row">
-            <th class="col-md-5" title="<% if (lan == 'eng') { %>Name of the file<% } else { %>文件名<% } %>">
+            <th class="col-md-4" title="<% if (lan == 'eng') { %>Name of the file<% } else { %>文件名<% } %>">
                 <% if (lan == 'eng') { %>File Name<% } else { %>文件名<% } %>
             </th>
-            <th class="col-md-5" title="<% if (lan == 'eng') { %>Type<% } else { %>类型<% } %>">
+            <th class="col-md-3" title="<% if (lan == 'eng') { %>Type<% } else { %>类型<% } %>">
                 <% if (lan == 'eng') { %>Type<% } else { %>类型<% } %>
+            </th>
+            <th class="col-md-3">
+                <%-lan == 'eng' ? 'Patient' : '病患'%>
             </th>
             <th class="col-md-2" title="<% if (lan == 'eng') { %>Whether this entry is valid as a datum for diagnosing.<% } else { %>该条目是否用作诊断数据<% } %>">
                 <% if (lan == 'eng') { %>valid<% } else { %>用于诊断<% } %>
@@ -473,8 +524,11 @@
         </thead>
         <tbody>
         <tr role="row" class="color-palette" ng-repeat="file in files">
-            <td>{{ file.name }}</td>
+            <td>
+                <a href="javascript: void(0);" ng-click="viewFile(file)">{{ file.name }}</a>
+            </td>
             <td>{{ <%-lan=='eng'?'file.type':'file.type=="gene"?"基因变异":"染色体变异"'%> }}</td>
+            <td>{{ file.patient }}</td>
             <td><input type="checkbox" ng-model="file.valid"></td>
         </tr>
         </tbody>

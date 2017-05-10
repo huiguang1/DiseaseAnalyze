@@ -95,8 +95,8 @@
                                     }
                                     var html = '';
                                     html += 'GDBID: ' + raw[0].GDBID + '<br/>';
-                                    html += 'EntrezID: ' + raw[0].EntrezID + '<br/>';
-                                    html += 'OMIMID: ' + raw[0].OMIM_ID + '<br/>';
+                                    html += 'EntrezID: ' + '<a href="'+raw[0].gREF + '">' + raw[0].EntrezID + '</a><br/>';
+                                    html += 'OMIMID: ' +  '<a href="'+raw[0].oREF + '">' + raw[0].OMIM_ID + '</a><br/>';
                                     html += 'Chrom: ' + raw[0].Cytoband + '<br/>';
                                     $('#detail-gene').html(html);
                                     for (var i = 0;i < raw.length;i++){
@@ -106,9 +106,10 @@
                                         newRow += '<td>' + raw[i].Start + '</td>';
                                         newRow += '<td>' + raw[i].End + '</td>';
                                         newRow += '<td>' + raw[i].Detail + '</td>';
-                                        newRow += '<td>' + raw[i].dbSNP + '</td>';
+                                        newRow += '<td>'+ (raw[i].dbREF ? ('<a href="'+raw[i].dbREF +'">' + raw[i].dbSNP + '</a>')
+                                                : raw[i].dbSNP) + '</td>';
                                         newRow += '<td>' + raw[i].hgvsALL + '</td>';
-                                        newRow += '<td>' + raw[i].PMID + '</td>';
+                                        newRow += '<td><a href="'+ raw[i].pREF + '">' + raw[i].PMID + '</a></td>';
                                         newRow += '<td>' + raw[i].JN + '</td>';
                                         newRow += '<td>' + raw[i].Year + '</td>';
                                         newRow += '</tr>';
