@@ -45,9 +45,9 @@
             $(document).ready(function() {
                 $.ui.dynatree.nodedatadefaults["icon"] = false;
                 $("#tree").dynatree({
-                    title: "Lazy loading sample",
+                    title: "症状树形图",
                     fx: {height: "toggle", duration: 200},
-                    autoFocus: false, // Set focus to first child, when expanding or lazy-loading.
+                    autoFocus: false,
                     checkbox: true,
                     onActivate: function(node){},
                     onSelect: function(flag, node){
@@ -56,14 +56,11 @@
                     initAjax: {
                         url: "http://202.121.178.141/cgi-bin/MDPA/HPOTreeData.cgi",
                         data: {"ID": 'all', 'eng': eng}
-
                     },
                     onLazyRead: function (node) {
                         node.appendAjax({
                             url: "http://202.121.178.141/cgi-bin/MDPA/HPOTreeData.cgi",
                             data: {"ID": node.data.key, 'eng': eng}
-                            // We don't want the next line in production code:
-                            // debugLazyDelay: 750
                         });
                     }
                 });
@@ -139,17 +136,16 @@
                         },
                         escapeMarkup: function (markup)
                         {
-                            //console.debug(markup)
                             return markup;
-                        }, // let our custom formatter work
+                        },
                         minimumInputLength: 2,
                         formatInputTooShort:  eng == 1 ? 'Please enter at least 2 characters' : "请输入至少2个字符以进行检索",
                         //maximumInputLength: 40,
                         templateResult:formatRepo,
                         templateSelection:formatRepoSelection,
                         openOnEnter: false
-                    }).on("select2:select", function(e)//搜索栏中添加一项时，与列表进行同步
-                    {
+                    })
+                        .on("select2:select", function(e){//搜索栏中添加一项时，与列表进行同步
                         insertRow(e.params.data.id.substr(3));
                     }).on("select2:unselect", function(e){//搜索栏中删除一项时，与列表进行同步
                         removeRow(e.params.data.id.substr(3));
@@ -159,7 +155,8 @@
                 {
                     if (repo.loading) return repo.text;
                     repo.text = repo.name;
-                    var markup = '<option class="select2-option-click" value='+repo.id+'>'+ repo.id+'|'+repo.text+'</option>';
+                    var markup = '<option class="select2-option-click" value='+repo.id+'>'
+                        + repo.id+'|'+repo.text+'</option>';
                     return markup;
                 }
 

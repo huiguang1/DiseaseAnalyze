@@ -833,33 +833,6 @@ module.exports = {
     },
 
 
-    /*test: function(req, res, next) {
-        User.find({}).then(function (users){
-            console.log('then1');
-            return Promise.reject('Reject!');
-        }, function (err) {
-            console.log('err1: '+ err);
-            res.locals.view = 'index';
-            return quickTemplate(req, res);
-        }).then(function(input){
-            console.log('input1: ' + input);
-            console.log('then2');
-            resolve('Resolve!');
-        }, function (err) {
-            console.log('err2: '+ err);
-            res.locals.view = 'index';
-            return quickTemplate(req, res);
-        }).then(function(input){
-            console.log('input2: ' + input);
-            res.locals.view = 'index';
-            return quickTemplate(req, res);
-        }, function (err) {
-            console.log('err3: '+ err);
-            res.locals.view = 'index';
-            return quickTemplate(req, res);
-        });
-
-    },*/
 
     /**
      * 详情页 
@@ -1018,5 +991,14 @@ module.exports = {
             'Content-Type': 'image/png'
         });
         res.end(imgbase64);
+    },
+
+    test: function (req, res, next) {
+        console.log(req.body);
+        if (req.body.finish == 'true'){
+            res.send('finish');
+        } else {
+            res.send('next');
+        }
     }
 };

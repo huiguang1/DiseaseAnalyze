@@ -329,7 +329,7 @@
 </div>
 <div class="row">
     <script src="<%=static_dir%>/js/xlsx.core.min.js"></script>
-    <script src="<%=static_dir%>/js/caseUploader.js"></script>
+    <script src="<%=static_dir%>/js/caseUploader/caseUploader.js"></script>
     <script>
         var ifNew = true;
         $(document).ready(function() {
@@ -345,6 +345,20 @@
                 $('#contentNewChromosome').hide();
                 $('#contentNewGene').hide();
             });
+
+            //初始化caseUploader插件
+            $('#caseUpload').caseUploader({
+                caseInput: 'file',//file是本页一个input标签的id
+                url: '/test',
+                callback: function(data, err) {
+                    if (err && err != ''){
+                        alert(err);
+                    }
+                    else {
+                        alert('上传成功！data: '+ data);
+                    }
+                }
+            });
         })
 
         //打开新建基因窗体
@@ -356,106 +370,11 @@
     <div class="row">
         <p>基因或染色体变异文件：</p>
         <button onclick="newGene()" class="btn btn-info">新建</button>
-        <div id="testupload"></div>
         <script>
+            var mytime;
             function upload(){
 
 
-                var files = [];
-                for (var i = 0;$('#file')[0].files[i];i++){
-                    files[i] = $('#file')[0].files[i];
-                }
-                files.sort(function(a, b){
-                    return a.size > b.size;
-                })
-                var file = files[0];
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    var result = e.target.result;
-                    var size = 0;
-                    result.split('\n').forEach(function(v,k){
-
-                        alert(v[16]);
-                    })
-                    return;
-                    var worksheet = XLSX.read(e.target.result, {type: 'binary'});
-                    var result = XLSX.utils.sheet_to_csv(worksheet.Sheets[worksheet.SheetNames[0]]);
-                    alert(result);
-
-                    var parsedData = {
-                        data: []
-                    };
-                    var splitedResult = result.trim().split('\n');
-                    var i;
-                    var ifGene = false;
-                    for (i = 0;i < splitedResult.length;i++){
-                        splitedResult[i] = splitedResult[i].trim();
-                        var line = splitedResult[i].split(',');
-                        if (line[0] == '染色体') {
-                            parsedData['染色体;染色体臂;位置;类型'] = '';
-                            i++;
-                            break;
-                        }
-                        if (line[0] == '基因名'){
-                            ifGene = true;
-                            parsedData['基因名'] = '';
-                            i++;
-                            break;
-                        }
-                        parsedData[line[0]] = line[1];
-                    }
-                    for (;i < splitedResult.length;i++){
-                        parsedData.data.push(splitedResult[i].split(',', ifGene ? 1 : 4));
-                    }
-
-                    if (parsedData['文件类型'] == undefined){
-                        alert('格式错误：文件“' + file.name +
-                            '”缺少字段“文件类型”。');
-                        return false;
-                    }
-                    switch(parsedData['文件类型']){
-                        case '染色体变异':
-                            if (parsedData['病患'] == undefined || parsedData['病患'] == ''){
-                                alert('格式错误：文件“' + file.name +
-                                    '”中，字段“病患”缺失，请修改后重新上传。');
-                                return false;
-                            }
-                            if (parsedData.data.length == 0 || parsedData['染色体;染色体臂;位置;类型'] == undefined){
-                                alert('格式错误：文件“' + file.name +
-                                    '”中，缺少染色体变异数据。');
-                                return false;
-                            }
-                            break;
-                        case '基因变异':
-                            if (parsedData['病患'] == undefined || parsedData['病患'] == ''){
-                                alert('格式错误：文件“' + file.name +
-                                    '”中，字段“病患”缺失，请修改后重新上传。');
-                                return false;
-                            }
-                            if (parsedData.data.length == 0 || parsedData['基因名'] == undefined){
-                                alert('格式错误：文件“' + file.name +
-                                    '”中，缺少基因变异数据。');
-                                return false;
-                            }
-                            break;
-                        default:
-                            alert('格式错误：文件“' + file.name +
-                                '”中，“'+ parsedData['文件类型'] +'”不是有效的文件类型。');
-                            return false;
-                    }
-
-                    var str = '';
-                    for (var i in parsedData){
-                        str += i + ': ' + parsedData[i] + '\n';
-                    }
-                    alert(str);
-                }
-                reader.readAsText(file);
-                return;
-
-                $('#testupload').caseUploader({
-
-                });
                 return;
 
                 alert(1);
@@ -537,8 +456,25 @@
     </table>
     <div class="row">
         <hr>
-        如数据量较大，请使用文件上传功能（支持vcf格式）：
+        如数据量较大，请使用文件上传功能。支持以下类型（点击链接下载模版）：
+        <br/>
+        基因变异文件（
+        <a href="<%=static_dir%>/caseTemplates/gene.txt" download="gene.txt">txt</a>、
+        <a href="<%=static_dir%>/caseTemplates/gene.xlsx" download="gene.xlsx">xlsx</a>、
+        <a href="<%=static_dir%>/caseTemplates/gene.xls" download="gene.xls">xls</a>、
+        <a href="<%=static_dir%>/caseTemplates/gene.csv" download="gene.csv">csv</a>
+        格式）；
+        <br/>
+        染色体变异文件（
+        <a href="<%=static_dir%>/caseTemplates/chrom.txt" download="chrom.txt">txt</a>、
+        <a href="<%=static_dir%>/caseTemplates/chrom.xlsx" download="chrom.xlsx">xlsx</a>、
+        <a href="<%=static_dir%>/caseTemplates/chrom.xls" download="chrom.xls">xls</a>、
+        <a href="<%=static_dir%>/caseTemplates/chrom.csv" download="chrom.csv">csv</a>、
+        vcf格式）。
+        <br/>
+        请注意，选择文件后需先点击“上传”按钮进行上传，再点击“诊断”按钮。
         <input type="file" multiple="multiple" name="file" id="file">
+        <div id="caseUpload"></div>
     </div>
     <div class="row">
         <hr>

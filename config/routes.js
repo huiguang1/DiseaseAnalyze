@@ -141,13 +141,13 @@ module.exports.routes = {
     '/case_picture/:id' : {
         controller: 'IndexController',
         action: 'casePicture'
-    }
+    },
 
     //测试用，上线时删除
-  /*'/test': {
+  '/test': {
       controller: 'IndexController',
       action: 'test'
-  }*/
+  }
 
   /***************************************************************************
    *                                                                          *
