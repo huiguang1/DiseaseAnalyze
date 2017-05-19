@@ -48,7 +48,9 @@
                     var geneFilFun = geneFilter == '' ? function (gene) { return true; } :
                         function (gene) { return gene.indexOf(geneFilter) > -1; };
                     var locationFilFun = locationFilter == '' ? function (loc) { return true; } :
-                        function (loc) { return loc.indexOf(locationFilter) > -1; };
+                        function (loc) {
+                        return (loc == null ? false : loc.toUpperCase().indexOf(locationFilter) > -1);
+                    };
                     var geneFound = false;
                     var locationFound = false;
                     for (var i = 0;i < genes.length;i++){

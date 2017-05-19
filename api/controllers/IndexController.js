@@ -994,6 +994,7 @@ module.exports = {
     },
 
     test: function (req, res, next) {
+        console.log('!!!');
         console.log(req.body);
         if (req.body.finish == 'true'){
             res.send('finish');

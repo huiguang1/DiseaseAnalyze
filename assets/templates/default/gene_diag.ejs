@@ -4,10 +4,54 @@
 <script>
     var app = angular.module('myApp', []);
     app.controller('myCtrl', function($scope) {
+
+        /*
+         疾病加载相关变量和方法
+         -------------------------------------------------
+         */
+        $scope.diseaseData = [];//搜索出的所有疾病详细数据，未分页，未过滤
+        $scope.pageDisease = [];//当页显示的疾病的diseaseData index
+        $scope.filterLoad = true;
+
+        $scope.diseasePagination = function(){
+            var $paginationDisease = $('#pagination-disease');
+            var pageSize = 10;
+            $scope.filterLoad = true;
+            var dataSource = [];
+            for (var i = 0;i < $scope.diseaseData.length;i++){
+                dataSource[i] = i;
+            }
+            $scope.$apply();
+            $paginationDisease.pagination({
+                dataSource: dataSource,//数据源
+                pageSize: pageSize,//每页显示的数量
+                pageRange: 9, //在本页页码单侧最多显示的页数
+                callback: function(data, pagination) {
+                    $scope.pageDisease = data;
+                    //pagination的第一次callback是同步的，此时使用$apply会出错。
+                    if ($scope.filterLoad){
+                        $scope.filterLoad = false;
+                    } else {
+                        //应用以更新页面
+                        $scope.$apply();
+                    }
+                }
+            });
+        }
+
+        //跳转至病例详情页
+        $scope.gotoDisease = function (dIndex) {
+            var href = '/disease/' + $scope.diseaseData[dIndex].ID;
+            window.open(href);
+        }
+
+        /*
+         文件创建相关变量和方法
+         -------------------------------------------------
+         */
         $scope.files = [];
         $scope.chroms = [];
         $scope.genes = [];
-
         //查看创建好的文件
         $scope.viewFile = function(file){
             ifNew = false;
@@ -156,6 +200,24 @@
                 type: 'POST',
                 success: function( data ) {
                     alert(data);
+
+                    //基因诊断接口调试中，此为生成疾病数据的桩方法
+                    $.ajax({
+                        type: 'GET',
+                        url: 'http://202.121.178.141/cgi-bin/MDPA/GPSEngine.cgi',
+                        data: 'HPO=HP:0000005&guid=1',
+                        async: false,
+                        success: function (data) {
+                            $scope.diagnoseInfo = '服务器调试中，以下为伪数据，非真实诊断结果。';
+                            $scope.diseaseData = $.parseJSON(data);
+                            $scope.diseasePagination();
+                        },
+                        error: function () {
+                            $scope.diagnoseInfo = '服务器异常，请稍后再试。';
+                        }
+                    });
+
+
                 },
                 error: function() {
                     alert("网络连接异常");
@@ -347,9 +409,14 @@
             });
 
             //初始化caseUploader插件
+            var guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+                    return v.toString(16);
+                });//用于标识本次基因诊断会话的id
             $('#caseUpload').caseUploader({
                 caseInput: 'file',//file是本页一个input标签的id
                 url: '/test',
+                additionalData: guid,
                 callback: function(data, err) {
                     if (err && err != ''){
                         alert(err);
@@ -481,9 +548,40 @@
         <button ng-click="upload()" class="btn btn-default pull-right">诊断</button>
         <button onclick="upload()" class="btn btn-default pull-right">测试</button>
     </div>
-    <div class="row">
+    <div class="row" ng-if="diagnoseInfo!=''">
         {{ diagnoseInfo }}
     </div>
+    <div class="block-disease" ng-if="diseaseData.length > 0"
+         ng-repeat="dIndex in pageDisease">
+        <div class="title-disease"><!--标题块-->
+            <a href="javascript: void(0);" ng-click="gotoDisease(dIndex)">
+                {{ diseaseData[dIndex].NO }}. {{ diseaseData[dIndex].Name }}
+            </a>
+            &nbsp;
+            <i ng-if="diseaseData[dIndex].pvalue != undefined">
+                (Score: {{ diseaseData[dIndex].Score }}, P-value: {{ diseaseData[dIndex].pvalue }})
+            </i>
+            <i ng-if="diseaseData[dIndex].pvalue == undefined">
+                (Score: {{ diseaseData[dIndex].Score }})
+            </i>
+        </div>
+        <div class="description-disease" ng-if="diseaseData[dIndex].Description != 'NULL'">
+            {{ diseaseData[dIndex].Description }}
+        </div>
+        <div class="gene-disease"
+             ng-if="&& diseaseData[dIndex].Genes != undefined && diseaseData[dIndex].Genes.length > 0">
+            <b>Gene(Cytogenetic location):</b>
+            <a target="_blank" href="{{ '/gene/' + gene.gene }}" ng-repeat="gene in diseaseData[dIndex].Genes">
+                {{ gene.gene + '(' + gene.cytoband + ');' }}
+            </a>
+        </div>
+        <div class="others-disease">
+            <a target="_blank" href="{{ 'https://omim.org/entry/'+diseaseData[dIndex].ID }}">
+                <b>OMIM: {{ diseaseData[dIndex].ID }}</b>
+            </a>
+        </div>
+    </div>
+    <div id="pagination-disease"></div>
 </div>
 
 <% include ./footer.ejs %>
