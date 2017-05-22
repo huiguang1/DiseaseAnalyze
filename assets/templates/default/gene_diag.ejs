@@ -201,7 +201,7 @@
                 success: function( data ) {
                     alert(data);
 
-                    //基因诊断接口调试中，此为生成疾病数据的桩方法
+                    //基因诊断接口调试中，此为生成伪疾病数据的桩方法
                     $.ajax({
                         type: 'GET',
                         url: 'http://202.121.178.141/cgi-bin/MDPA/GPSEngine.cgi',
@@ -415,7 +415,7 @@
                 });//用于标识本次基因诊断会话的id
             $('#caseUpload').caseUploader({
                 caseInput: 'file',//file是本页一个input标签的id
-                url: '/test',
+                url: 'http://202.121.178.141/cgi-bin/MDPA/CaseUpload.cgi',
                 additionalData: guid,
                 callback: function(data, err) {
                     if (err && err != ''){

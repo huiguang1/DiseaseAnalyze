@@ -2,18 +2,21 @@
  * Created by shxx_yhg on 2017/3/15.
  * caseUploader.js - 一个用来上传vcf、xls、xlsx、txt、csv格式病例文件的jQuery插件
  * 对病例文件进行分块、压缩、断点续传
+ * 该版本仅支持单例（一个页面中仅能有一个同时运行）
  *
  * 依赖：
  * xlsx.js - xlsx.core.min.js
+ *
  */
 
 
 (function ( $ ) {
+    //初始化
     $.fn.caseUploader = function(options) {
         $.extend($.fn.caseUploader.options, options);
         var status = $.fn.caseUploader.status;
 
-        //构造元素
+        //构造页面元素
         var htmlStr = '';
         if (typeof options.caseInput == 'undefined'){
             htmlStr += '<input id="case-input" type="file" accept="text/plain, .xls, .xlsx, .csv, .vcf">';
@@ -49,11 +52,6 @@
         }
         status.$pauseButton.click($.fn.caseUploader.pause);
 
-        /*var str = '';
-        for (var i in this){
-            str += i + ': ' + this[i] + '\n';
-        }
-        alert(str);*/
         return this;
     };
     //可自定义的属性
@@ -120,6 +118,7 @@
         $.fn.caseUploader.updateView();
         $.fn.caseUploader.options.callback('cu-error', err);
     };
+    //递归上传逻辑
     $.fn.caseUploader.uploadRecursively = function(){
         var status = $.fn.caseUploader.status;
         if (status.pausing) {
@@ -134,7 +133,8 @@
         if (status.chunkPos != 0){
             //继续分块上传
             status.reader.readAsText(file.slice(status.chunkPos, status.chunkPos + options.chunkSize), options.encoding);
-        } else {
+        }
+        else {
             //开始上传一个新的文件。
             switch (file.ext){
                 case 'txt': case 'csv':
@@ -150,6 +150,7 @@
             }
         }
     };
+    //对解析过的文件数据进行格式检查
     $.fn.caseUploader.checkParsed = function(parsedData, file){
         if (parsedData['文件类型'] == undefined){
             $.fn.caseUploader.terminate('格式错误：文件“' + file.name +
@@ -188,6 +189,7 @@
         }
         return true;
     };
+    //开始上传
     $.fn.caseUploader.upload = function (e) {
         var status = $.fn.caseUploader.status;
         if (status.uploading){
@@ -197,6 +199,8 @@
         }
         var options = $.fn.caseUploader.options;
         status.uploading = true;
+        status.index = 0;
+        status.fileIndex = 0;
         status.lastTime = new Date().getTime();
         for (var i = 0;status.$input[0].files[i];i++){
             status.files[i] = status.$input[0].files[i];
@@ -241,6 +245,7 @@
 
                 //病例文件解析、检查和封装
                 var result = e.target.result;
+                var fileIndexPlus = 0;
                 if (file.ext == 'vcf'){
                     var chunkSizeCount = 0;
                     if (status.chunkPos > 0){
@@ -249,10 +254,10 @@
                             //最后一块
                             status.lastSize = file.size - status.chunkPos;
                             status.chunkPos = 0;
-                            status.fileIndex++;
+                            fileIndexPlus = 1;
                             fData.append("type", 'tail');
                             fData.append("chunk", result);
-                            fData.append("finish", status.fileIndex == status.files.length ? 'true' : 'false');
+                            fData.append("finish", status.fileIndex+1 == status.files.length ? 'true' : 'false');
                         } else {
                             //中间块
                             status.lastSize = result.lastIndexOf('\n')+1;
@@ -261,7 +266,8 @@
                             fData.append("chunk", result.substr(0, result.lastIndexOf('\n')).trim());
                             fData.append("finish", 'false');
                         }
-                    } else {
+                    }
+                    else {
                         //元数据处理，此处假定元数据大小在单文件块大小以下
                         var metaData = {};
                         var lines = result.split('\n');
@@ -350,14 +356,13 @@
                             break;
 
                         default:
-                            status.log('upload1');
-                            return $.fn.caseUploader.terminate('未知错误。\n' + status.LOG);
+                            return $.fn.caseUploader.terminate('未知错误: Upload Default 1\n');
                     }
                     status.lastSize = file.size;
-                    status.fileIndex++;
+                    fileIndexPlus = 1;
                     fData.append("type",'file');
                     fData.append("parsedData",JSON.stringify(parsedData));
-                    fData.append("finish", status.fileIndex == status.files.length ? 'true' : 'false');
+                    fData.append("finish", status.fileIndex+1 == status.files.length ? 'true' : 'false');
                 }
                 fData.append("index", status.index);
                 var tryAjax = function(errorCount) {
@@ -370,9 +375,10 @@
                         cache: false,
                         timeout: 15000,
                         success: function (ret) {
-                            //TODO: 解析返回值，更新可视元素
+                            //解析返回值，更新可视元素
                             status.log('Uploaded ' + status.index + ', ret: '+ ret);
                             status.index++;
+                            status.fileIndex += fileIndexPlus;
                             switch (ret) {
                                 case 'next':
                                     $.fn.caseUploader.uploadRecursively();
@@ -391,8 +397,11 @@
                         error: function (err) {
                             errorCount++;
                             if (errorCount >= 3) {
-                                return $.fn.caseUploader.terminate('网络连接异常，上传终止。\n' +
-                                    '请检查您的网络连接后再试。');
+                                if (!$.fn.caseUploader.status.pausing){
+                                    $.fn.caseUploader.pause();
+                                    alert('网络连接异常，上传自动暂停。\n' +
+                                        '请检查您的网络连接后再继续。');
+                                }
                             }
                             else {
                                 return tryAjax(errorCount);
@@ -406,14 +415,18 @@
         }
         return $.fn.caseUploader.uploadRecursively();
     };
-    //暂停和继续
+    //暂停或继续
     $.fn.caseUploader.pause = function (e) {
         $.fn.caseUploader.status.pausing = !$.fn.caseUploader.status.pausing;
         if (!$.fn.caseUploader.status.pausing){
+            $.fn.caseUploader.status.$pauseButton.html('暂停');
             $.fn.caseUploader.status.lastTime = (new Date()).getTime();
             $.fn.caseUploader.uploadRecursively();
+        } else {
+            $.fn.caseUploader.updateView();
         }
     };
+    //压缩，未实现
     $.fn.caseUploader.compress = function (data) {
         //TODO: 压缩数据
         return data;

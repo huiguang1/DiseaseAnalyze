@@ -89,11 +89,14 @@ module.exports = {
             res.locals.searched[i] = hpo[i].split('$');
             logPhenotype += res.locals.searched[i] + ';';
         }
-        var guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-            return v.toString(16);
-        });
-        res.locals.guid = guid;
+
+        if (req.session.guid == undefined || req.session.guid == '') {
+            req.session.guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        res.locals.guid = req.session.guid;
         var ip = req.headers['x-forwarded-for'] ||
             req.connection.remoteAddress ||
             req.socket.remoteAddress ||
@@ -994,7 +997,6 @@ module.exports = {
     },
 
     test: function (req, res, next) {
-        console.log('!!!');
         console.log(req.body);
         if (req.body.finish == 'true'){
             res.send('finish');

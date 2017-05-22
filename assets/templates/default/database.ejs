@@ -10,6 +10,9 @@
                 if ($scope.page == 0 && offset < 0) return;
                 $scope.page += offset;
             }
+            else {
+                $scope.page = 0;
+            }
             $.ajax({
                 url : "/searchCase",
                 async: false,
@@ -84,7 +87,7 @@
     <tbody id="tableBody">
         <tr role="row" class="color-palette" ng-repeat="case in cases">
             <td>{{ case.id }}</td>
-            <td>{{ case.Phenotype }}</td>
+            <td style="word-break: break-all;">{{ case.Phenotype }}</td>
             <td>{{ case.Owner }}</td>
             <td>{{ case.View == 'public' ? '<%-lan == 'eng' ? 'public' : '公开'%>' : '<%-lan == 'eng' ? 'private' : '私有'%>' }}</td>
             <% if (userName == '') { %>
