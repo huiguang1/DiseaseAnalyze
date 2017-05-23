@@ -103,7 +103,7 @@ module.exports = {
             req.connection.socket.remoteAddress;
         SearchLog.create({
             phenotype: logPhenotype,
-            guid: guid,
+            guid: req.session.guid,
             ip: ip//req.connection.remoteAddress.replace(/::ffff:/, '')//req.ip.replace(/::ffff:/, '')
         }).then(function(){
             res.locals.navMod = 0;
