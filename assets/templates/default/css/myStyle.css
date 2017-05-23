@@ -25,7 +25,7 @@ input, select, textarea { width: 100%; }
 .dataTable tbody tr { background-color: white; }
 body { background-color: rgb(234, 246, 249); }
 span.dynatree-selected a { font-style: normal; color: black; }
-.sticky-right {position: fixed; top: 12vw; padding-left: 0; padding-right: 0; }
+.sticky-right { position: fixed; top: 13vw; padding-left: 0; padding-right: 0; }
 .noMargin { margin-left: 0; margin-right: 0; }
 .navbar-inverse { background-color: #0a3e7a; }
 
@@ -47,7 +47,7 @@ span.dynatree-selected a { font-style: normal; color: black; }
 .info-input { padding-left: 0; padding-right: 0; }
 .input-div { padding-left: 0; padding-right: 0; }
 
-.block-disease { margin-bottom: 2em; }
+.block-disease { margin-bottom: 2em; border: #2aabd2 solid 3px; padding: 5px; background-color: rgb(244, 255, 255);}
 .title-disease { font-size: 1.2em; }
 .title-disease a { color: #0000cc; }
 .title-disease a:hover { color: orangered; }
