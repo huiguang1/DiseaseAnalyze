@@ -67,7 +67,7 @@ module.exports = {
 
     geneDiag: function(req, res, next) {
         res.locals.view = "gene_diag";
-
+        res.locals.userName = req.session.userName;
         res.locals.navMod = 1;
 
         return quickTemplate(req, res);
@@ -90,20 +90,17 @@ module.exports = {
             logPhenotype += res.locals.searched[i] + ';';
         }
 
-        if (req.session.guid == undefined || req.session.guid == '') {
-            req.session.guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
-        res.locals.guid = req.session.guid;
+        res.locals.guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
         var ip = req.headers['x-forwarded-for'] ||
             req.connection.remoteAddress ||
             req.socket.remoteAddress ||
             req.connection.socket.remoteAddress;
         SearchLog.create({
             phenotype: logPhenotype,
-            guid: req.session.guid,
+            guid: res.locals.guid,
             ip: ip//req.connection.remoteAddress.replace(/::ffff:/, '')//req.ip.replace(/::ffff:/, '')
         }).then(function(){
             res.locals.navMod = 0;

@@ -236,11 +236,11 @@
         if (typeof status.reader == 'undefined') {
             var reader = new FileReader();
             reader.onload = function (e) {
-                var fData = new FormData();
+                var fData = {};
                 var file = status.files[status.fileIndex];
-                fData.append("name",file.name);
+                fData.name = file.name;
                 if (options.additionalData != ''){
-                    fData.append("additionalData", options.additionalData);
+                    fData.additionalData = options.additionalData;
                 }
 
                 //病例文件解析、检查和封装
@@ -255,16 +255,16 @@
                             status.lastSize = file.size - status.chunkPos;
                             status.chunkPos = 0;
                             fileIndexPlus = 1;
-                            fData.append("type", 'tail');
-                            fData.append("chunk", result);
-                            fData.append("finish", status.fileIndex+1 == status.files.length ? 'true' : 'false');
+                            fData.type = 'tail';
+                            fData.chunk = result;
+                            fData.finish = status.fileIndex+1 == status.files.length ? 'true' : 'false';
                         } else {
                             //中间块
                             status.lastSize = result.lastIndexOf('\n')+1;
                             status.chunkPos += status.lastSize;
-                            fData.append("type", 'chunk');
-                            fData.append("chunk", result.substr(0, result.lastIndexOf('\n')).trim());
-                            fData.append("finish", 'false');
+                            fData.type = 'chunk';
+                            fData.chunk = result.substr(0, result.lastIndexOf('\n')).trim();
+                            fData.finish = 'false';
                         }
                     }
                     else {
@@ -300,9 +300,9 @@
                                 break;
                             }
                         }
-                        fData.append("type",'head');
-                        fData.append("metaData", JSON.stringify(metaData));
-                        fData.append("finish", 'false');
+                        fData.type = 'head';
+                        fData.metaData = JSON.stringify(metaData);
+                        fData.finish = 'false';
                         //剩下的数据丢弃，等待下次传输
                         status.chunkPos = chunkSizeCount;
                         status.lastSize = chunkSizeCount;
@@ -360,20 +360,23 @@
                     }
                     status.lastSize = file.size;
                     fileIndexPlus = 1;
-                    fData.append("type",'file');
-                    fData.append("parsedData",JSON.stringify(parsedData));
-                    fData.append("finish", status.fileIndex+1 == status.files.length ? 'true' : 'false');
+                    fData.type = 'file';
+                    fData.parsedData = JSON.stringify(parsedData);
+                    fData.finish = status.fileIndex+1 == status.files.length ? 'true' : 'false';
                 }
-                fData.append("index", status.index);
+                fData.index = status.index;
                 var tryAjax = function(errorCount) {
                     $.ajax({
                         url: options.url,
                         type: 'POST',
-                        data: fData,
-                        processData: false,
-                        contentType: false,
-                        cache: false,
-                        timeout: 15000,
+                        data: {
+                            abc: 'abc'
+                        },
+                        async: false,//!!
+                        //processData: false,
+                        //contentType: false,
+                        //cache: false,
+                        //timeout: 15000,
                         success: function (ret) {
                             //解析返回值，更新可视元素
                             status.log('Uploaded ' + status.index + ', ret: '+ ret);
@@ -392,6 +395,10 @@
                                     $.fn.caseUploader.updateView();
                                     options.callback(ret);
                                     break;
+                                default:
+                                    return $.fn.caseUploader.terminate('服务器返回非法结果“' +
+                                        + ret + '”，上传终止。\n' +
+                                        '请稍后再试。');
                             }
                         },
                         error: function (err) {
@@ -412,6 +419,59 @@
                 tryAjax(0);
             };
             status.reader = reader;
+
+
+
+            $.ajax({
+                url: options.url,
+                type: 'POST',
+                data: {
+                    abc: 'abc'
+                },
+                async: false,//!!
+                //processData: false,
+                //contentType: false,
+                //cache: false,
+                //timeout: 15000,
+                success: function (ret) {
+                    //解析返回值，更新可视元素
+                    alert(ret);
+                    status.log('Uploaded ' + status.index + ', ret: '+ ret);
+                    status.index++;
+                    status.fileIndex += fileIndexPlus;
+                    switch (ret) {
+                        case 'next':
+                            $.fn.caseUploader.uploadRecursively();
+                            $.fn.caseUploader.updateView();
+                            break;
+                        case 'abort':
+                            return $.fn.caseUploader.terminate('服务器异常，上传终止。\n' +
+                                '请稍后再试。');
+                        case 'finish':
+                            status.uploading = false;
+                            $.fn.caseUploader.updateView();
+                            options.callback(ret);
+                            break;
+                        default:
+                            return $.fn.caseUploader.terminate('服务器返回非法结果“' +
+                                + ret + '”，上传终止。\n' +
+                                '请稍后再试。');
+                    }
+                },
+                error: function (err) {
+                    errorCount++;
+                    if (errorCount >= 3) {
+                        if (!$.fn.caseUploader.status.pausing){
+                            $.fn.caseUploader.pause();
+                            alert('网络连接异常，上传自动暂停。\n' +
+                                '请检查您的网络连接后再继续。');
+                        }
+                    }
+                    else {
+                        return tryAjax(errorCount);
+                    }
+                }
+            });
         }
         return $.fn.caseUploader.uploadRecursively();
     };

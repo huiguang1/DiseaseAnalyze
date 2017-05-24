@@ -415,8 +415,8 @@
                 });//用于标识本次基因诊断会话的id
             $('#caseUpload').caseUploader({
                 caseInput: 'file',//file是本页一个input标签的id
-                url: 'http://202.121.178.141/cgi-bin/MDPA/CaseUpload.cgi',
-                additionalData: guid,
+                url: 'http://202.121.178.141/cgi-bin/MDPA/VCFupload.cgi',
+                additionalData: 'guid='+guid<%-userName?'+"user="+"'+userName+'"':''%>,
                 callback: function(data, err) {
                     if (err && err != ''){
                         alert(err);
@@ -557,7 +557,7 @@
             <a href="javascript: void(0);" ng-click="gotoDisease(dIndex)">
                 {{ diseaseData[dIndex].NO }}. {{ diseaseData[dIndex].Name }}
             </a>
-            &nbsp;
+            <br>
             <i ng-if="diseaseData[dIndex].pvalue != undefined">
                 (Score: {{ diseaseData[dIndex].Score }}, P-value: {{ diseaseData[dIndex].pvalue }})
             </i>

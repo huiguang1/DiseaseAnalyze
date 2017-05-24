@@ -233,6 +233,7 @@
                             $scope.pageDisease = data;
                         })
                     }
+                    window.scrollTo(0, 0);
                     //获取热度图数据
                     var params = '';
                     for (var j = 0;j < searchedPhenotype.length;j++) {
@@ -398,7 +399,7 @@
                     <a href="javascript: void(0);" ng-click="gotoDisease(dIndex)">
                         {{ diseaseData[dIndex].NO }}. {{ diseaseData[dIndex].Name }}
                     </a>
-                    &nbsp;
+                    <br>
                     <i ng-if="diseaseData[dIndex].pvalue != undefined">
                         (Score: {{ diseaseData[dIndex].Score }}, P-value: {{ diseaseData[dIndex].pvalue }})
                     </i>
