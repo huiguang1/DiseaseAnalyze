@@ -84,7 +84,7 @@
             $(function() {
                 var $myCloud = $("#phenotype-cloud");
                 $.ajax({
-                    url: 'http://202.121.178.141/cgi-bin/MDPA/HotWords.cgi',
+                    url: 'http://202.121.178.141/cgi-bin/MDPA/HotWords.cgi?eng='+eng,
                     success: function(words){
                         var phenotype_list = $.parseJSON(words);
                         $myCloud.jQCloud(phenotype_list);

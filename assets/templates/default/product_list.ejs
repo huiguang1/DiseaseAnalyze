@@ -259,6 +259,7 @@
                 data += 'HPO=' + $searchBox.children()[i].value + '&';
             }
             data += 'guid=' + '<%-guid%>';
+            data += '&eng='+eng;
             $.ajax({
                 type: 'GET',
                 url: 'http://202.121.178.141/cgi-bin/MDPA/GPSEngine.cgi',
@@ -269,6 +270,7 @@
                     //$apply会执行作为参数的函数，完成后会更新视图，以免pagination找不到标签而出错
                     $scope.$apply(function (){
                         for (var i = 0;i < $scope.diseaseData.length;i++){
+                            $scope.diseaseData[i].Synonym = $scope.diseaseData[i].Synonym.split(';;');
                             $scope.diseaseFiltered[i] = i;
                         }
                     });
@@ -413,13 +415,35 @@
                     {{ diseaseData[dIndex].Description }}
                 </div>
                 <div class="gene-disease"
+                     ng-if="showDetailed == 'detailed'">
+                    <b><%-lan=='eng'?'Synonym':'同义词'%>: </b>
+                    <p ng-repeat="synonym in diseaseData[dIndex].Synonym">
+                        {{ synonym }}
+                    </p>
+                </div>
+                <div class="gene-disease"
                      ng-if="showDetailed == 'detailed' && diseaseData[dIndex].Genes != undefined && diseaseData[dIndex].Genes.length > 0">
-                    <b>Gene(Cytogenetic location):</b>
+                    <b>OMIM Gene(Cytogenetic location):</b>
                     <a target="_blank" href="{{ '/gene/' + gene.gene }}" ng-repeat="gene in diseaseData[dIndex].Genes">
                         {{ gene.gene + '(' + gene.cytoband + ');' }}
                     </a>
                 </div>
+                <div class="gene-disease"
+                     ng-if="showDetailed == 'detailed' && diseaseData[dIndex].Genes_hpo != undefined && diseaseData[dIndex].Genes_hpo.length > 0">
+                    <b>HPO Gene(Cytogenetic location):</b>
+                    <a target="_blank" href="{{ '/gene/' + gene.gene }}" ng-repeat="gene in diseaseData[dIndex].Genes_hpo">
+                        {{ gene.gene + '(' + gene.cytoband + ');' }}
+                    </a>
+                </div>
                 <div class="others-disease" ng-if="showDetailed == 'detailed'">
+                    <b><%-lan!='eng' ? '遗传模式' : 'Mode of inheritance'%>: </b>{{ diseaseData[dIndex].MOI }} |
+                    <b><%-lan!='eng' ? '死亡年龄' : 'Age of death'%>: </b>{{ diseaseData[dIndex].AOD }} |
+                    <b><%-lan!='eng' ? '发病率' : 'Prevalence'%>: </b>{{ diseaseData[dIndex].Prevalence }} |
+                    <b>INDEL: </b>{{ diseaseData[dIndex].INDEL }} |
+                    <b><%-lan!='eng' ? '临床调节因素' : 'Clinical modifier'%>: </b>{{ diseaseData[dIndex].Clinical_modifier }} |
+                    <b><%-lan!='eng' ? '发病年龄' : 'Onset'%>: </b>
+                    {{ diseaseData[dIndex].Onset == 'All ages' ? ('<%-lan%>' == 'eng' ? 'All ages' : '全年龄段') : diseaseData[dIndex].Onset }}
+                    <br/>
                     <a target="_blank" href="{{ 'https://omim.org/entry/'+diseaseData[dIndex].ID }}">
                         <b>OMIM: {{ diseaseData[dIndex].ID }}</b>
                     </a>

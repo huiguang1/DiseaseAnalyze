@@ -47,13 +47,13 @@ span.dynatree-selected a { font-style: normal; color: black; }
 .info-input { padding-left: 0; padding-right: 0; }
 .input-div { padding-left: 0; padding-right: 0; }
 
-.block-disease { margin-bottom: 2em; border: #2aabd2 solid 3px; padding: 5px; background-color: rgb(244, 255, 255);}
+.block-disease { margin-bottom: 2em; border: #2aabd2 solid 3px; padding: 5px; background-color: rgb(244, 255, 255); font-size: 1.2em;}
 .title-disease { font-size: 1.2em; }
 .title-disease a { color: #0000cc; }
 .title-disease a:hover { color: orangered; }
 .gene-disease a { color: #0078CF; }
 .description-disease { text-align: justify; }
-.others-disease b { color: green; font-size: 1.2em; }
+.others-disease a b { color: green; font-size: 1.2em; }
 .others-disease i { color: grey; float: right; }
 
 .block-color { height: 2em; width: 3em; background: rgb(0,255,0); cursor:pointer;}
