@@ -437,11 +437,11 @@
                     </a>
                 </div>
                 <div class="others-disease" ng-if="showDetailed == 'detailed'">
-                    <b><%-lan!='eng' ? '遗传模式' : 'Mode of inheritance'%>: </b>{{ diseaseData[dIndex].MOI }} |
-                    <b><%-lan!='eng' ? '死亡年龄' : 'Age of death'%>: </b>{{ diseaseData[dIndex].AOD }} |
-                    <b><%-lan!='eng' ? '发病率' : 'Prevalence'%>: </b>{{ diseaseData[dIndex].Prevalence }} |
-                    <b>INDEL: </b>{{ diseaseData[dIndex].INDEL }} |
-                    <b><%-lan!='eng' ? '临床调节因素' : 'Clinical modifier'%>: </b>{{ diseaseData[dIndex].Clinical_modifier }} |
+                    <b><%-lan!='eng' ? '遗传模式' : 'Mode of inheritance'%>: </b>{{ diseaseData[dIndex].MOI }} <br>
+                    <b><%-lan!='eng' ? '死亡年龄' : 'Age of death'%>: </b>{{ diseaseData[dIndex].AOD }} <br>
+                    <b><%-lan!='eng' ? '发病率' : 'Prevalence'%>: </b>{{ diseaseData[dIndex].Prevalence }} <br>
+                    <b>INDEL: </b>{{ diseaseData[dIndex].INDEL }} <br>
+                    <b><%-lan!='eng' ? '临床调节因素' : 'Clinical modifier'%>: </b>{{ diseaseData[dIndex].Clinical_modifier }} <br>
                     <b><%-lan!='eng' ? '发病年龄' : 'Onset'%>: </b>
                     {{ diseaseData[dIndex].Onset == 'All ages' ? ('<%-lan%>' == 'eng' ? 'All ages' : '全年龄段') : diseaseData[dIndex].Onset }}
                     <br/>

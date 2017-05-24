@@ -392,6 +392,7 @@
 <div class="row">
     <script src="<%=static_dir%>/js/xlsx.core.min.js"></script>
     <script src="<%=static_dir%>/js/caseUploader/caseUploader.js"></script>
+    <link rel="stylesheet" href="<%=static_dir%>/js/caseUploader/caseUploader.css"/>
     <script>
         var ifNew = true;
         $(document).ready(function() {
@@ -416,7 +417,10 @@
             $('#caseUpload').caseUploader({
                 caseInput: 'file',//file是本页一个input标签的id
                 url: 'http://202.121.178.141/cgi-bin/MDPA/VCFupload.cgi',
-                additionalData: 'guid='+guid<%-userName?'+"user="+"'+userName+'"':''%>,
+                additionalData: JSON.stringify({
+                    guid: guid
+                    <%-userName && userName != '' ? ',user: '+userName : ''%>
+                }),
                 callback: function(data, err) {
                     if (err && err != ''){
                         alert(err);
