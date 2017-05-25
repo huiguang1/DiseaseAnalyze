@@ -35,14 +35,62 @@
         $scope.filterName = '';
         $scope.filterGene = '';
         $scope.filterLocation = '';
+        $scope.filterScore = '';
+        $scope.filterPValue = '';
+        $scope.filterPattern = '';
+        $scope.filterAge = '';
         $scope.filterLoad = false;
+        $scope.startPage = '';
+        $scope.endPage = '';
+        $scope.omimData = [];
+
+        $scope.deleteOMIM = function (omim) {
+            $scope.omimData.splice($scope.omimData.indexOf(omim), 1);
+        }
+        //弹出OMIM数据
+        $scope.getOMIM = function () {
+            if ($scope.startPage == '' || $scope.endPage == '') return;
+            var param = '';
+            for (var i = ($scope.startPage-1) < 0 ? 0 : ($scope.startPage-1);i < ($scope.endPage>= $scope.diseaseFiltered.length ?
+                $scope.diseaseFiltered.length: $scope.endPage);i++){
+                param += $scope.diseaseData[$scope.diseaseFiltered[i]].ID + ',';
+            }
+            if (param == '') return;
+            param = param.substr(0, param.length-1);
+            $.ajax({
+                url: 'http://202.121.178.141/cgi-bin/MDPA/GeneList.cgi?omim='+param,
+                async: false,
+                success: function (data) {
+                    var parsed = $.parseJSON(data);
+                    $scope.omimData = parsed;
+                    $('#myModal2').modal('show');
+                    showSymptoms();
+                },
+                error: function () {
+                    alert(1);
+                    alert('网络连接异常');
+                }
+            })
+        }
         //过滤疾病
         $scope.filterSubmit = function(){
             var nameFilter = $scope.filterName.toUpperCase();
             var geneFilter = $scope.filterGene.toUpperCase();
             var locationFilter = $scope.filterLocation.toUpperCase();
+            var scoreFilter = $scope.filterScore;
+            var pValueFilter = $scope.filterPValue;
+            var patternFilter = $scope.filterPattern;
+            var ageFilter = $scope.filterAge;
             var nameFilFun = nameFilter == '' ? function (name) { return true; } :
                 function (name) { return name.indexOf(nameFilter) > -1; };
+            var scoreFilFun = scoreFilter == '' ? function (score) { return true; } :
+                function (score) { return Number(score) >= Number(scoreFilter); };
+            var pValueFilFun = pValueFilter == '' ? function (pValue) { return true; } :
+                function (pValue) { return pValue==undefined ? false : Number(pValue) <= Number(pValueFilter); };
+            var patternFilFun = patternFilter == '' ? function (pattern) { return true; } :
+                function (pattern) { return pattern.indexOf(patternFilter) > -1; };
+            var ageFilFun = ageFilter == '' ? function(age){ return true; } :
+                function (age) { return age.indexOf(ageFilter) > -1; };
             var genesFilFun = geneFilter == '' && locationFilter == '' ? function (genes) { return true; }
                 : function (genes) {
                     var geneFilFun = geneFilter == '' ? function (gene) { return true; } :
@@ -62,7 +110,9 @@
                 };
             $scope.diseaseFiltered = [];
             for (var i = 0;i < $scope.diseaseData.length;i++){
-                if (nameFilFun($scope.diseaseData[i].Name) && genesFilFun($scope.diseaseData[i].Genes)){
+                if (nameFilFun($scope.diseaseData[i].Name) && genesFilFun($scope.diseaseData[i].Genes)
+                && scoreFilFun($scope.diseaseData[i].Score)  && pValueFilFun($scope.diseaseData[i].pvalue)
+                && patternFilFun($scope.diseaseData[i].MOI) && ageFilFun($scope.diseaseData[i].Onset)){
                     $scope.diseaseFiltered.push(i);
                 }
             }
@@ -287,6 +337,71 @@
     });
 </script>
 
+<div class="modal fade" id="myModal2" tabindex="-1" role="dialog" aria-labelledby="myModal2Label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title" id="myModal2Label">
+                    <% if (lan == 'eng') { %>OMIM Data<% } else { %>OMIM数据<% } %>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered table-striped dataTable" role="grid">
+                    <thead>
+                    <tr role="row">
+                        <th  class="col-md-2">
+                            <% if (lan == 'eng') { %>ID<% } else { %>ID<% } %>
+                        </th>
+                        <th class="col-md-2">
+                            <% if (lan == 'eng') { %>Location<% } else { %>位置<% } %>
+                        </th>
+                        <th class="col-md-2">
+                            <% if (lan == 'eng') { %>Name<% } else { %>名字<% } %>
+                        </th>
+                        <th class="col-md-2">
+                            <% if (lan == 'eng') { %>Family<% } else { %>家族<% } %>
+                        </th>
+                        <th class="col-md-2">
+                            <% if (lan == 'eng') { %>HGMD Count<% } else { %>HGMD记录<% } %>
+                        </th>
+                        <th class="col-md-2">
+                            <% if (lan == 'eng') { %>Operation<% } else { %>操作<% } %>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr role="row" class="color-palette" ng-repeat="omim in omimData">
+                        <td>
+                            {{ omim.HGNC }}
+                        </td>
+                        <td>
+                            {{ omim.cytoband }}
+                        </td>
+                        <td>
+                            {{ omim.name }}
+                        </td>
+                        <td>
+                            {{ omim.genefamily }}
+                        </td>
+                        <td>
+                            {{ omim.HGMD_count }}
+                        </td>
+                        <td>
+                            <a href="javascript:void(0)" ng-click="deleteOMIM(omim)">
+                                <%-lan=='eng'?'Delete':'删除'%>
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
 <DIV id="network-data" style="display: none;"></DIV>
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog" id="picDialog">
@@ -332,13 +447,20 @@
 </script>
 
 <div class="row">
-    <div class="col-md-8">
+    <div class="col-md-12">
         <script>
+            var ifShowSymptoms = false;
             function showFilter(){
                 $('#filter-disease').show();
             }
             function hideFilter(){
                 $('#filter-disease').hide();
+            }
+            function showSymptoms() {
+                var $tools = $('#symptoms-compare');
+                $tools.css('left',ifShowSymptoms ? '200vw' : '0');
+                $('#btn-show-symptoms').html(ifShowSymptoms ? '»' : '«').css('left', ifShowSymptoms ? '0' : $tools.css('width'));
+                ifShowSymptoms = !ifShowSymptoms;
             }
         </script>
         <!--显示疾病时可选择显示精简信息或者详细信息。可以直接显示所有结果，还可进行过滤。-->
@@ -351,30 +473,6 @@
                 <a href="javascript:void(0);" ng-if="!isShowingAll" ng-click="showAll();">
                     <% if (lan == 'eng') { %>Show all<% } else { %>显示全部<% } %>
                 </a>
-                <a href="javascript:void(0);" id="show-filter" onclick="showFilter();">
-                    <% if (lan == 'eng') { %>Filter<% } else { %>结果中过滤<% } %>
-                </a>
-            </div>
-            <div class="filter-holder col-md-5">
-                <div id="filter-disease" hidden>
-                    <div class="row filter-input-div">
-                        <div class="col-md-4 info-input">
-                            <% if (lan == 'eng') { %>Disease: <% } else { %>疾病名称：<% } %>
-                        </div>
-                        <div class="col-md-8 input-div"><input ng-model="filterName" class="filter-input" autocomplete="off"></div>
-                        <div class="col-md-4 info-input">
-                            <% if (lan == 'eng') { %>Gene: <% } else { %>基因名称：<% } %>
-                        </div>
-                        <div class="col-md-8 input-div"><input ng-model="filterGene" class="filter-input" autocomplete="off"></div>
-                        <div class="col-md-4 info-input">
-                            <% if (lan == 'eng') { %>Cytoband: <% } else { %>基因位置：<% } %>
-                        </div>
-                        <div class="col-md-8 input-div"><input ng-model="filterLocation" class="filter-input" autocomplete="off"></div>
-                    </div>
-                    <input id="filter-submit" type='button' value="<% if (lan == 'eng') { %>Go<% } else { %>过滤<% } %>" class="btn btn-primary" ng-click="filterSubmit()">
-                    <br/>
-                    <a id='filter-cancel' href="javascript:void(0);" onclick="hideFilter();"><% if (lan == 'eng') { %>Cancel<% } else { %>取消<% } %></a>
-                </div>
             </div>
         </div>
         <!--逐条显示疾病-->
@@ -395,10 +493,10 @@
             <div class="block-disease" ng-if="diseaseFiltered.length > 0"
                  ng-repeat="dIndex in (isShowingAll ? diseaseFiltered : pageDisease)">
                 <div class="title-disease"><!--标题块-->
-                    <input type="checkbox" ng-model="diseaseData[dIndex].checked" ng-click="onCheckSwitch(dIndex)">
                     <a href="javascript: void(0);" ng-click="gotoDisease(dIndex)">
                         {{ diseaseData[dIndex].NO }}. {{ diseaseData[dIndex].Name }}
                     </a>
+                    <input type="checkbox" ng-model="diseaseData[dIndex].checked" ng-click="onCheckSwitch(dIndex)">
                     <br>
                     <i ng-if="diseaseData[dIndex].pvalue != undefined">
                         (Score: {{ diseaseData[dIndex].Score }}, P-value: {{ diseaseData[dIndex].pvalue }})
@@ -453,8 +551,11 @@
         </div>
         <div id="pagination-disease"></div>
     </div>
+    <button class="fixed-left btn btn-default" onclick="showSymptoms()" id="btn-show-symptoms">
+        »
+    </button>
     <div class="col-md-4">
-        <div class="sticky-right col-md-3">
+        <div class="sticky-right" id="symptoms-compare">
             <script type="text/javascript">
                 var searchedPhenotype = [];//初始搜索关键字
 
@@ -544,63 +645,112 @@
                     $('#form1').submit();
                 }
             </script>
-            <!--搜索栏-->
-            <FORM METHOD=POST id='form1' ACTION="/list">
-                <div class="row search-area">
-                    <div class="col-md-10 search-div">
-                        <select id="sel_menu2" name="HPO" multiple="multiple" class="form-control">
-                            <% if (typeof(searched) != 'undefined') {
-                                    for (var i = 0;i < searched.length;i++) { %>
-                                        <option value="<%-searched[i][0]%>" selected><%-searched[i][1]%></option>
-                            <%      }
-                               }
-                            %>
+            <div class="col-md-6">
+                <!--搜索栏-->
+                <FORM METHOD=POST id='form1' ACTION="/list">
+                    <div class="row search-area">
+                        <div class="col-md-10 search-div">
+                            <select id="sel_menu2" name="HPO" multiple="multiple" class="form-control">
+                                <% if (typeof(searched) != 'undefined') {
+                                        for (var i = 0;i < searched.length;i++) { %>
+                                            <option value="<%-searched[i][0]%>" selected><%-searched[i][1]%></option>
+                                <%      }
+                                   }
+                                %>
+                            </select>
+                        </div>
+                        <input type='button' value="<% if (lan == 'eng') { %>Search<% } else { %>搜索<% } %>" class="btn btn-primary col-md-2 search-btn" onclick='searchSubmit()'>
+                    </div>
+                </FORM>
+                <!--疾病对应的症状列表-->
+                <label ng-if="diseaseSet.length == 0">
+                    <br/>
+                    <br/>
+                    <% if (lan == 'eng') { %>Check the diseases to view related phenotype<% } else { %>勾选疾病名即可查看相关症状<% } %>
+                </label>
+                <div>
+                    <input value="intersection" name="showType" type="radio" ng-model="diseaseSetAction" ng-change="refreshTable()">
+                    <% if (lan == 'eng') { %>Show mutual phenotypes only<% } else { %>只显示共有症状<% } %>
+                    <input value="unique" name="showType" type="radio" ng-model="diseaseSetAction" ng-change="refreshTable()">
+                    <% if (lan == 'eng') { %>Show non-mutual phenotypes only<% } else { %>只显示非共有症状<% } %>
+                </div>
+                <div id="pagination-phenotype" ng-if="diseaseSet.length > 0"></div>
+                <table class="table table-bordered table-striped dataTable" role="grid" ng-if="diseaseSet.length > 0">
+                    <thead>
+                    <tr role="row">
+                        <th title="<% if (lan == 'eng') { %>Name of the phenotype<% } else { %>症状名<% } %>" class="col-md-4">
+                            <% if (lan == 'eng') { %>Name<% } else { %>名字<% } %>
+                        </th>
+                        <th title="<% if (lan == 'eng') { %>Detailed explanation of the phenotype<% } else { %>症状的详细解释<% } %>" class="col-md-8">
+                            <% if (lan == 'eng') { %>Explanation<% } else { %>描述<% } %>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr role="row" class="color-palette" ng-repeat="symptom in pageDiseaseSet">
+                        <td>
+                            <a href="javascript: void(0);" ng-click="addSelect(symptom.key, symptom.chname)">
+                                {{ symptom.chname }}
+                            </a>
+                        </td>
+                        <td>
+                            {{ symptom.description == 'NULL' ? '' : symptom.description }}
+                            {{ symptom.longDescription && symptom.description.length <= longestLength ? '...' : '' }}
+                            <a href="javascript:void(0)" ng-click="swapDescription(symptom)" ng-if="symptom.longDescription">
+                                {{ symptom.description.length > longestLength ? '«' : '»' }}
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <div class="row filter-input-div">
+                    <div class="col-md-4 info-input">
+                        <% if (lan == 'eng') { %>Disease: <% } else { %>疾病名称：<% } %>
+                    </div>
+                    <div class="col-md-8 input-div"><input ng-model="filterName" class="filter-input" autocomplete="off" placeholder="<%-lan=='eng'?'case-insensitive' : '大小写不敏感'%>"></div>
+                    <div class="col-md-4 info-input">
+                        <% if (lan == 'eng') { %>Gene: <% } else { %>基因名称：<% } %>
+                    </div>
+                    <div class="col-md-8 input-div"><input ng-model="filterGene" class="filter-input" autocomplete="off" placeholder="<%-lan=='eng'?'case-insensitive' : '大小写不敏感'%>"></div>
+                    <div class="col-md-4 info-input">
+                        <% if (lan == 'eng') { %>Cytoband: <% } else { %>基因位置：<% } %>
+                    </div>
+                    <div class="col-md-8 input-div"><input ng-model="filterLocation" class="filter-input" autocomplete="off" placeholder="<%-lan=='eng'?'case-insensitive' : '大小写不敏感'%>"></div>
+                    <div class="col-md-4 info-input">
+                        <% if (lan == 'eng') { %>Min Score: <% } else { %>最小Score：<% } %>
+                    </div>
+                    <div class="col-md-8 input-div"><input ng-model="filterScore" class="filter-input" autocomplete="off" placeholder="<%-lan=='eng'?'case-insensitive' : '大小写不敏感'%>"></div>
+                    <div class="col-md-4 info-input">
+                        <% if (lan == 'eng') { %>Min P-value: <% } else { %>最小P值：<% } %>
+                    </div>
+                    <div class="col-md-8 input-div"><input ng-model="filterPValue" class="filter-input" autocomplete="off" placeholder="<%-lan=='eng'?'case-insensitive' : '大小写不敏感'%>"></div>
+                    <div class="col-md-4 info-input">
+                        <% if (lan == 'eng') { %>Mode of inheritance: <% } else { %>遗传模式：<% } %>
+                    </div>
+                    <div class="col-md-8 input-div"><input ng-model="filterPattern" class="filter-input" autocomplete="off" placeholder="<%-lan=='eng'?'case-insensitive' : '大小写不敏感'%>"></div>
+                    <div class="col-md-4 info-input">
+                        <% if (lan == 'eng') { %>Onset: <% } else { %>发病年龄：<% } %>
+                    </div>
+                    <div class="col-md-8 input-div">
+                        <select ng-model="filterAge" class="filter-input" autocomplete="off">
+                            <option value=""></option>
+                            <option value="<%-lan=='eng'?'congenital':'先天发病'%>"><%-lan=='eng'?'congenital':'先天发病'%></option>
+                            <option value="<%-lan=='eng'?'adult':'成年发病'%>"><%-lan=='eng'?'adult':'成年发病'%></option>
+                            <option value="<%-lan=='eng'?'infantile':'婴幼儿期发病'%>"><%-lan=='eng'?'infantile':'婴幼儿期发病'%></option>
+                            <option value="<%-lan=='eng'?'juvenile':'青少年期发病'%>"><%-lan=='eng'?'juvenile':'青少年期发病'%></option>
+                            <option value="<%-lan=='eng'?'neonatal':'新生儿期发病'%>"><%-lan=='eng'?'neonatal':'新生儿期发病'%></option>
+                            <option value="<%-lan=='eng'?'childhood':'儿童期发病'%>"><%-lan=='eng'?'childhood':'儿童期发病'%></option>
+                            <option value="<%-lan=='eng'?'antenatal':'产前发病'%>"><%-lan=='eng'?'antenatal':'产前发病'%></option>
                         </select>
                     </div>
-                    <input type='button' value="<% if (lan == 'eng') { %>Search<% } else { %>搜索<% } %>" class="btn btn-primary col-md-2 search-btn" onclick='searchSubmit()'>
                 </div>
-            </FORM>
-            <!--疾病对应的症状列表-->
-            <label ng-if="diseaseSet.length == 0">
-                <br/>
-                <br/>
-                <% if (lan == 'eng') { %>Check the diseases on the left to view related phenotype<% } else { %>勾选左侧疾病名即可查看相关症状<% } %>
-            </label>
-            <div>
-                <input value="intersection" name="showType" type="radio" ng-model="diseaseSetAction" ng-change="refreshTable()">
-                <% if (lan == 'eng') { %>Show mutual phenotypes only<% } else { %>只显示共有症状<% } %>
-                <input value="unique" name="showType" type="radio" ng-model="diseaseSetAction" ng-change="refreshTable()">
-                <% if (lan == 'eng') { %>Show non-mutual phenotypes only<% } else { %>只显示非共有症状<% } %>
+                <input id="filter-submit" type='button' value="<% if (lan == 'eng') { %>Go<% } else { %>过滤<% } %>" class="btn btn-primary" ng-click="filterSubmit()">
+                <br>
+                获取第<input type="text" ng-model="startPage">至第<input type="text" ng-model="endPage">疾病的OMIM数据
+                <input type="button" value="GO" class="btn btn-primary" ng-click="getOMIM()">
             </div>
-            <div id="pagination-phenotype" ng-if="diseaseSet.length > 0"></div>
-            <table class="table table-bordered table-striped dataTable" role="grid" ng-if="diseaseSet.length > 0">
-                <thead>
-                <tr role="row">
-                    <th title="<% if (lan == 'eng') { %>Name of the phenotype<% } else { %>症状名<% } %>" class="col-md-4">
-                        <% if (lan == 'eng') { %>Name<% } else { %>名字<% } %>
-                    </th>
-                    <th title="<% if (lan == 'eng') { %>Detailed explanation of the phenotype<% } else { %>症状的详细解释<% } %>" class="col-md-8">
-                        <% if (lan == 'eng') { %>Explanation<% } else { %>描述<% } %>
-                    </th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr role="row" class="color-palette" ng-repeat="symptom in pageDiseaseSet">
-                    <td>
-                        <a href="javascript: void(0);" ng-click="addSelect(symptom.key, symptom.chname)">
-                            {{ symptom.chname }}
-                        </a>
-                    </td>
-                    <td>
-                        {{ symptom.description == 'NULL' ? '' : symptom.description }}
-                        {{ symptom.longDescription && symptom.description.length <= longestLength ? '...' : '' }}
-                        <a href="javascript:void(0)" ng-click="swapDescription(symptom)" ng-if="symptom.longDescription">
-                            {{ symptom.description.length > longestLength ? '«' : '»' }}
-                        </a>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
         </div>
     </div>
 </div>
