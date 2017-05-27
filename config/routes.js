@@ -143,6 +143,15 @@ module.exports.routes = {
         action: 'casePicture'
     },
 
+    '/new_password' : {
+        controller: 'IndexController',
+        action: 'newPassword'
+    },
+
+    '/emailVerify' : {
+        controller: 'IndexController',
+        action: 'emailVerify'
+    },
     //测试用，上线时删除
   '/test': {
       controller: 'IndexController',

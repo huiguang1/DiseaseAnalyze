@@ -6,6 +6,30 @@
     app.controller('myCtrl', function($scope) {
 
         /*
+         查看诊断结果
+         -------------------------------------------------
+         */
+        $scope.getCaseResult = function () {
+            if ($scope.inputGuid == undefined || $scope.inputGuid == '') return;
+            $.ajax({
+                url: 'http://202.121.178.141/cgi-bin/Anno.cgi?offer=check&user=guest&uid='+$scope.inputGuid,
+                success: function (data){
+                    var parsed = $.parseJSON(data);
+                    if (parsed.percentage != undefined){
+                        alert('文件分析正在进行中（'+parsed.percentage+'），请耐心等待');
+                    }
+                    else {
+                        window.open(parsed.url);
+                        alert('分析完成！请在弹出页面中查看结果。');
+                    }
+                },
+                error: function () {
+                    alert('网络连接异常，请稍后再试');
+                }
+            })
+        }
+
+        /*
          疾病加载相关变量和方法
          -------------------------------------------------
          */
@@ -224,6 +248,42 @@
                 }
             });
         }
+
+        //初始化caseUploader插件
+        var guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+            return v.toString(16);
+        });//用于标识本次基因诊断会话的id
+        $('#caseUpload').caseUploader({
+            caseInput: 'file',//file是本页一个input标签的id
+            url: 'http://202.121.178.141/cgi-bin/MDPA/VCFupload.cgi',
+            additionalData: JSON.stringify({
+                guid: guid
+                <%-userName && userName != '' ? ',user: '+userName : ''%>
+            }),
+            callback: function(data, err) {
+                if (err && err != ''){
+                    alert(err);
+                }
+                else {
+                    $.ajax({
+                        url: 'http://202.121.178.141/cgi-bin/Anno.cgi?offer=submit&user=guest&uid='+guid,
+                        success: function(){
+                            alert('上传成功！请记录guid：'+ guid + '\n稍后在本页查看结果。');
+                            $scope.inputGuid = guid;
+                        },
+                        error: function(err) {
+                            var str = '';
+                            for (var i in err){
+                                if (typeof err[i] != "function")
+                                    str += i + ': ' + err[i] + '\n';
+                            }
+                            alert('上传失败，未知错误\n'+str);
+                        }
+                    })
+                }
+            }
+        });
     });
 </script>
 
@@ -409,27 +469,7 @@
                 $('#contentNewGene').hide();
             });
 
-            //初始化caseUploader插件
-            var guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-                    return v.toString(16);
-                });//用于标识本次基因诊断会话的id
-            $('#caseUpload').caseUploader({
-                caseInput: 'file',//file是本页一个input标签的id
-                url: 'http://202.121.178.141/cgi-bin/MDPA/VCFupload.cgi',
-                additionalData: JSON.stringify({
-                    guid: guid
-                    <%-userName && userName != '' ? ',user: '+userName : ''%>
-                }),
-                callback: function(data, err) {
-                    if (err && err != ''){
-                        alert(err);
-                    }
-                    else {
-                        alert('上传成功！data: '+ data);
-                    }
-                }
-            });
+
         })
 
         //打开新建基因窗体
@@ -546,6 +586,9 @@
         请注意，选择文件后需先点击“上传”按钮进行上传，再点击“诊断”按钮。
         <input type="file" multiple="multiple" name="file" id="file">
         <div id="caseUpload"></div>
+        持有guid的用户，请在此输入并查看结果：
+        <input type="text" ng-model="inputGuid">
+        <button class="btn btn-primary" ng-click="getCaseResult()">查看</button>
     </div>
     <div class="row">
         <hr>

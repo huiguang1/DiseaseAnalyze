@@ -22,6 +22,7 @@ function getNArray(n){
 }
 
 function myMD5(str) {
+    str += 'TBDL';
     var md5sum = Crypto.createHash('md5');
     md5sum.update(str);
     str = md5sum.digest('hex');
@@ -490,7 +491,7 @@ module.exports = {
         }
 
         var usrName = req.param("name").trim().toLowerCase();
-        var psw = myMD5(req.param("password").trim());
+        var psw = myMD5(req.param("password"));
         var verification = req.param("verification").trim();
         if (verification != req.session.login.randomcode){
             res.send('verification');
@@ -993,12 +994,63 @@ module.exports = {
         res.end(imgbase64);
     },
 
+    //测试用
     test: function (req, res, next) {
         console.log(req.body);
         if (req.body.finish == 'true'){
             res.send('finish');
         } else {
             res.send('next');
+        }
+    },
+
+    newPassword: function (req, res, next) {
+
+        res.locals.loggedIn = req.session.userName != undefined && req.session.userName != '';
+        if (req.method.toUpperCase() == 'POST'){
+            if (!res.locals.loggedIn){
+                return errTemplate(req, res, '错误，您需要先登录。');
+            }
+            if (req.body.password == undefined || req.body.password.length == 0){
+                return errTemplate(req, res, '错误，请输入密码');
+            }
+            var psw = myMD5(req.body.password);
+            User.update({ name: res.session.userName }, { password: psw}).then(function () {
+
+            });
+        } else {
+            res.locals.view = 'new_password';
+            return quickTemplate(req, res);
+        }
+    },
+
+    emailVerify: function (req, res, next) {
+        if (req.param("email") != undefined && req.param("email") != ''){
+            var email = req.param("email").trim();
+            User.find({ email: email }).then(function (users) {
+                if (users.length > 0){
+                    var secret = myMD5((new Date()).toTimeString() + 'gps' + email);
+                    req.session.emailVerifySecret = secret;
+                    req.session.prepareUserName = users[0].name;
+                    mailer.send(email,'<p>您正准备重置diseasegps网站的密码，请复制以下验证码进行验证：</p>' +
+                        '<p>' + secret + '</p>'
+                        + '<p>如果您没有使用我们的系统发出此邮件，请忽略。</p>');
+                    res.send('ok');
+                } else {
+                    res.send('exist')
+                }
+            });
+        } else if (req.param("verify") != undefined && req.param("verify") != '') {
+            if (req.session.emailVerifySecret == undefined || req.session.emailVerifySecret == ''){
+                return res.send('exist');
+            }
+            var verify = req.param("verify").trim();
+            if (verify == req.session.emailVerifySecret){
+                req.session.userName = req.session.prepareUserName;
+                res.send('ok');
+            } else {
+                res.send('code');
+            }
         }
     }
 };

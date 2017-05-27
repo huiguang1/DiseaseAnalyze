@@ -40,7 +40,6 @@
         $scope.filterPattern = '';
         $scope.filterAge = '';
         $scope.filterLoad = false;
-        $scope.startPage = '';
         $scope.endPage = '';
         $scope.omimData = [];
 
@@ -49,9 +48,9 @@
         }
         //弹出OMIM数据
         $scope.getOMIM = function () {
-            if ($scope.startPage == '' || $scope.endPage == '') return;
+            if ($scope.endPage == '') return;
             var param = '';
-            for (var i = ($scope.startPage-1) < 0 ? 0 : ($scope.startPage-1);i < ($scope.endPage>= $scope.diseaseFiltered.length ?
+            for (var i = 0;i < ($scope.endPage>= $scope.diseaseFiltered.length ?
                 $scope.diseaseFiltered.length: $scope.endPage);i++){
                 param += $scope.diseaseData[$scope.diseaseFiltered[i]].ID + ',';
             }
@@ -459,7 +458,7 @@
             function showSymptoms() {
                 var $tools = $('#symptoms-compare');
                 $tools.css('left',ifShowSymptoms ? '200vw' : '0');
-                $('#btn-show-symptoms').html(ifShowSymptoms ? '»' : '«').css('left', ifShowSymptoms ? '0' : $tools.css('width'));
+                $('#btn-show-symptoms').css('left', ifShowSymptoms ? '0' : $tools.css('width'));
                 ifShowSymptoms = !ifShowSymptoms;
             }
         </script>
@@ -552,7 +551,7 @@
         <div id="pagination-disease"></div>
     </div>
     <button class="fixed-left btn btn-default" onclick="showSymptoms()" id="btn-show-symptoms">
-        »
+        工<br>具<br>栏
     </button>
     <div class="col-md-4">
         <div class="sticky-right" id="symptoms-compare">
@@ -748,7 +747,8 @@
                 </div>
                 <input id="filter-submit" type='button' value="<% if (lan == 'eng') { %>Go<% } else { %>过滤<% } %>" class="btn btn-primary" ng-click="filterSubmit()">
                 <br>
-                获取第<input type="text" ng-model="startPage">至第<input type="text" ng-model="endPage">疾病的OMIM数据
+                <br>
+                获取前<input type="text" ng-model="endPage" id="input-endPage">个疾病的OMIM数据
                 <input type="button" value="GO" class="btn btn-primary" ng-click="getOMIM()">
             </div>
         </div>

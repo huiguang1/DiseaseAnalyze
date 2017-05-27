@@ -60,6 +60,8 @@ span.dynatree-selected a { font-style: normal; color: black; }
 
 .block-color { height: 2em; width: 3em; background: rgb(0,255,0); cursor:pointer;}
 
+#input-endPage { width: 4vw; }
+
 /* disease page
 -------------------------------------------------- */
 
