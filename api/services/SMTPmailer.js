@@ -14,11 +14,11 @@ var transporter = nodemailer.createTransport({
     }
 });
 
-exports.send = function(to, html) {
+exports.send = function(to, html, subject) {
     var mailOptions = {
             from: 'gps_smtp@163.com', // login user must equel to this user
             to: to,
-            subject: 'GPS网站注册验证',
+            subject: subject,
             html: html
         };
 

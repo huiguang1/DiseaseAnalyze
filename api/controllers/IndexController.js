@@ -456,7 +456,8 @@ module.exports = {
             };
             mailer.send(email,'<p>您正在验证自己的注册，请点击以下链接进行验证：</p>' +
                 '<a href="' + config.host +'/verify?pass='+secret+'">请点击我</a>' +
-                '<p>请注意，该链接在10分钟后，或清除浏览器数据后将会失效，届时将需要重新注册。</p>');
+                '<p>请注意，该链接在10分钟后，或清除浏览器数据后将会失效，届时将需要重新注册。</p>',
+                'GPS网站注册验证');
             res.send('success');
         });
     },
@@ -1015,8 +1016,10 @@ module.exports = {
                 return errTemplate(req, res, '错误，请输入密码');
             }
             var psw = myMD5(req.body.password);
-            User.update({ name: res.session.userName }, { password: psw}).then(function () {
-
+            User.update({ name: req.session.userName }, { password: psw}).then(function () {
+                return res.send('ok');
+            }, function (err) {
+                return next(err);
             });
         } else {
             res.locals.view = 'new_password';
@@ -1034,17 +1037,18 @@ module.exports = {
                     req.session.prepareUserName = users[0].name;
                     mailer.send(email,'<p>您正准备重置diseasegps网站的密码，请复制以下验证码进行验证：</p>' +
                         '<p>' + secret + '</p>'
-                        + '<p>如果您没有使用我们的系统发出此邮件，请忽略。</p>');
+                        + '<p>如果您没有使用我们的系统发出此邮件，请忽略。</p>',
+                        'GPS网站密码重置');
                     res.send('ok');
                 } else {
                     res.send('exist')
                 }
             });
-        } else if (req.param("verify") != undefined && req.param("verify") != '') {
+        } else if (req.param("code") != undefined && req.param("code") != '') {
             if (req.session.emailVerifySecret == undefined || req.session.emailVerifySecret == ''){
                 return res.send('exist');
             }
-            var verify = req.param("verify").trim();
+            var verify = req.param("code").trim();
             if (verify == req.session.emailVerifySecret){
                 req.session.userName = req.session.prepareUserName;
                 res.send('ok');

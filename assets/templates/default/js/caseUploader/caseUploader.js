@@ -1,5 +1,5 @@
 /**
- * Created by shxx_yhg on 2017/3/15.
+ * Created by yhg on 2017/3/15.
  * caseUploader.js - 一个用来上传vcf、xls、xlsx、txt、csv格式病例文件的jQuery插件
  * 对病例文件进行分块、压缩、断点续传
  * 该版本仅支持单例（一个页面中仅能有一个同时运行）
@@ -273,14 +273,14 @@
                             status.chunkPos = 0;
                             fileIndexPlus = 1;
                             fData.type = 'tail';
-                            fData.chunk = result;
+                            fData.chunk = $.fn.caseUploader.compress(result);
                             fData.finish = status.fileIndex+1 == status.files.length ? 'true' : 'false';
                         } else {
                             //中间块
                             status.lastSize = result.lastIndexOf('\n')+1;
                             status.chunkPos += status.lastSize;
                             fData.type = 'chunk';
-                            fData.chunk = result.substr(0, result.lastIndexOf('\n')).trim();
+                            fData.chunk = $.fn.caseUploader.compress(result.substr(0, result.lastIndexOf('\n')).trim());
                             fData.finish = 'false';
                         }
                     }
@@ -452,9 +452,9 @@
             $.fn.caseUploader.updateView();
         }
     };
-    //压缩，未实现
+    //采用pako进行压缩
     $.fn.caseUploader.compress = function (data) {
-        //TODO: 压缩数据
-        return data;
+        data = pako.deflate(data, {to: 'string'});
+        return btoa(data);
     };
 } ( jQuery ));

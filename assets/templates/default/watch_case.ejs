@@ -1,10 +1,21 @@
 <% include header.ejs %>
+<script>
+    $(document).ready(function() {
+        var param = '?eng='+eng+'&HPO='+'<%-aCase.Phenotype%>'.replace(/;/g, ',')
+        $.ajax({
+            url: 'http://202.121.178.141/cgi-bin/MDPA/HPOName.cgi'+param,
+            success: function (data) {
+                $('#para-phenotype').html('症状：'+data);
+            }
+        })
+    })
+</script>
 <p>Patient_Id: <%-aCase.id %></p>
 <p>来源: <%-aCase.CaseOrigin %></p>
 <p>姓名: <%-aCase.PatientName %></p>
 <p>性别: <%-aCase.Sex %></p>
 <p>年龄: <%-aCase.Age %></p>
-<p>症状: <%-aCase.Phenotype %></p>
+<p id="para-phenotype">症状: <%-aCase.Phenotype %></p>
 <p>相关疾病：<%-aCase.Disease%></p>
 <p>备注：<%-aCase.Comment%></p>
 <p>所有者: <%-aCase.Owner %></p>

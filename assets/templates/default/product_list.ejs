@@ -495,7 +495,7 @@
                     <a href="javascript: void(0);" ng-click="gotoDisease(dIndex)">
                         {{ diseaseData[dIndex].NO }}. {{ diseaseData[dIndex].Name }}
                     </a>
-                    <input type="checkbox" ng-model="diseaseData[dIndex].checked" ng-click="onCheckSwitch(dIndex)">
+                    <input class="pull-right" type="checkbox" ng-model="diseaseData[dIndex].checked" ng-click="onCheckSwitch(dIndex)">
                     <br>
                     <i ng-if="diseaseData[dIndex].pvalue != undefined">
                         (Score: {{ diseaseData[dIndex].Score }}, P-value: {{ diseaseData[dIndex].pvalue }})

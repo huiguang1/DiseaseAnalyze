@@ -3,6 +3,7 @@
     var app = angular.module('myApp', []);
     app.controller('myCtrl', function($scope) {
         $scope.page = 0;
+        $scope.searchTimes = 0;
         $scope.morePages = false;
         $scope.searchCase = function (offset) {
             if (arguments[0]){
@@ -23,6 +24,21 @@
                 type: 'GET',
                 success: function( data ) {
                     $scope.cases = data.cases;
+                    $scope.searchTimes++;
+                    for (var i = 0;i < $scope.cases.length;i++){
+                        var param = '?eng=' + eng;
+                        param += '&HPO='+$scope.cases[i].Phenotype.replace(/;/g, ',');
+                        $.ajax({
+                            url: 'http://202.121.178.141/cgi-bin/MDPA/HPOName.cgi'+param,
+                            searchTime: $scope.searchTimes,
+                            i: i,
+                            success: function (data) {
+                                if ($scope.searchTimes != this.searchTime) return;
+                                $scope.cases[this.i].Phenotype = data;
+                                $scope.$apply();
+                            }
+                        })
+                    }
                     $scope.morePages = !data.finalPage;
                 },
                 error: function() {

@@ -450,7 +450,8 @@
     </div>
 </div>
 <div class="row">
-    <script src="<%=static_dir%>/js/xlsx.core.min.js"></script>
+    <script src="<%=static_dir%>/js/caseUploader/lib/xlsx.core.min.js"></script>
+    <script src="<%=static_dir%>/js/caseUploader/lib/pako.min.js"></script>
     <script src="<%=static_dir%>/js/caseUploader/caseUploader.js"></script>
     <link rel="stylesheet" href="<%=static_dir%>/js/caseUploader/caseUploader.css"/>
     <script>
@@ -484,7 +485,23 @@
         <script>
             var mytime;
             function upload(){
+                //var data = pako.gzip('11111111111111111222222222222222222222333',{to: 'string'});
+                var originalData = '11111111111111111222222222222222222222333';
 
+                var data = pako.deflate(originalData, {to: 'string'});
+                data = btoa(data);
+                $.ajax({
+                    url: 'http://202.121.178.141/cgi-bin/MDPA/VCFZip.cgi',
+                    data: {
+                        data: data
+                    },
+                    success: function (data) {
+                        alert(data);
+                    },
+                    error: function (err) {
+                        alert('err');
+                    }
+                })
 
                 return;
 
