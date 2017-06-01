@@ -3,6 +3,7 @@
 <!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
 <!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<!--页眉-->
 <head>
     <meta charset="UTF-8">
 
@@ -125,6 +126,7 @@
 <script>
     var eng = '<%-lan%>' == 'eng' ? 1 : 0;
     $(function () {
+        //当用户点击“注册或登录”时，显示“登录”选项卡，切换选项卡自动刷新验证码
         $('#myTab a:first').tab('show');
         $('#tab-signIn').on('show.bs.tab', function (e) {
             loadRndImg(0);
@@ -134,15 +136,18 @@
         })
     })
 
+    //显示登录模态窗
     function signInOrUp(){
         loadRndImg(0);
         $('#loginModal').modal('show');
     }
 
+    //刷新验证码
     function loadRndImg(num){
         document.getElementById('rnd-img-'+num).src = '/randompng?' + new Date();
     }
 
+    //验证登录并发送
     function checkSignIn(form) {
         if (form.elements['name'].value.length <= 0 )
         {
@@ -173,6 +178,7 @@
         return false;
     }
 
+    //验证注册并发送
     function checkSignUp(form) {
         if (form.elements['name'].value.length <= 0 || form.elements['name'].value.length > 20)
         {

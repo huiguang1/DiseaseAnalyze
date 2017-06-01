@@ -1,3 +1,7 @@
+/*
+ * GPS网站专用CSS，对style.css有一些覆盖。
+ */
+
 a { color: #0078CF; }
 input, select, textarea { width: 100%; }
 
@@ -81,7 +85,7 @@ span.dynatree-selected a { font-style: normal; color: black; }
 -------------------------------------------------- */
 .row-search { height: 50px; }
 .input-search { height: 100%; }
-#search-case { height: 100%; background-color: #00c0ef }
+.search-case { height: 100%; background-color: #00c0ef }
 
 /* my request
 -------------------------------------------------- */

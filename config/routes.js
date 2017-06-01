@@ -20,6 +20,11 @@
  * http://sailsjs.org/#!/documentation/concepts/Routes/RouteTargetSyntax.html
  */
 
+/**
+ * 此处将每个sails.js控制器与URL绑定。控制器名字与URL一般差不多。
+ *
+ */
+
 module.exports.routes = {
 
   /***************************************************************************
@@ -46,6 +51,7 @@ module.exports.routes = {
     action: 'list'
   },
 
+    //类似“:id”是一种传参手段，例如/disease/123这一URL的“123”部分可以在控制器中取得
   '/disease/:id': {
     controller: 'IndexController',
     action: 'detail'
@@ -54,11 +60,6 @@ module.exports.routes = {
   '/gene/:id': {
     controller: 'IndexController',
     action: 'gene'
-  },
-
-  '/searchResult': {
-    controller: 'IndexController',
-    action: 'search'
   },
 
   '/randompng': {
@@ -118,10 +119,6 @@ module.exports.routes = {
         action: 'changePermission'
     },
 
-    '/upload' : {
-        controller: 'IndexController',
-        action: 'upload'
-    },
 
     '/verify' : {
         controller: 'IndexController',
@@ -152,7 +149,7 @@ module.exports.routes = {
         controller: 'IndexController',
         action: 'emailVerify'
     },
-    //测试用，上线时删除
+    //测试用
   '/test': {
       controller: 'IndexController',
       action: 'test'

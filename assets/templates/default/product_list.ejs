@@ -1,4 +1,6 @@
 <% include ./header.ejs %>
+<!--疾病搜索结果列表-->
+
 
 <!--cytoscape要引入的文件-->
 <link rel="stylesheet" href="<%=static_dir%>/js/cytoscape/biogrid_jquery.qtip.css"/>
@@ -32,6 +34,8 @@
         $scope.showDetailed = 'detailed';
         $scope.diseaseSetAction = 'intersection';
         $scope.longestLength = eng == 1 ? 24 : 12;
+
+        //绑定过滤输入栏的变量
         $scope.filterName = '';
         $scope.filterGene = '';
         $scope.filterLocation = '';
@@ -40,9 +44,11 @@
         $scope.filterPattern = '';
         $scope.filterAge = '';
         $scope.filterLoad = false;
+
         $scope.endPage = '';
         $scope.omimData = [];
 
+        //删除 OMIM列表中的一项
         $scope.deleteOMIM = function (omim) {
             $scope.omimData.splice($scope.omimData.indexOf(omim), 1);
         }
@@ -297,7 +303,7 @@
             });
         }
 
-        //获取疾病数据
+        //获取疾病数据，需在页面加载时完成
         var getDisease = function (){
             var $searchBox = $('#sel_menu2');
             if ($searchBox.children().length === 0) {
@@ -425,7 +431,7 @@
     </div><!-- /.modal -->
 </div>
 <script>
-    //获取网络图数据并弹出
+    //获取网络图数据并弹出。网络图数据已经由GPS引擎进行模版化
     function buildNetwork(source, target){
         var params = '?HPO=' + source;
         params += '&HPO=' + target;
@@ -449,12 +455,7 @@
     <div class="col-md-12">
         <script>
             var ifShowSymptoms = false;
-            function showFilter(){
-                $('#filter-disease').show();
-            }
-            function hideFilter(){
-                $('#filter-disease').hide();
-            }
+            //显示和隐藏工具栏
             function showSymptoms() {
                 var $tools = $('#symptoms-compare');
                 $tools.css('left',ifShowSymptoms ? '200vw' : '0');
@@ -559,7 +560,7 @@
                 var searchedPhenotype = [];//初始搜索关键字
 
                 $(document).ready(function() {
-                    //弹出的对话框用于显示症状关系网络图
+                    //弹出用于显示症状网络图的对话框
                     $('#myModal').on('shown.bs.modal', buildCY).on('hide.bs.modal', function(){
                         $('.qtip-pos-bl').remove();
                     });

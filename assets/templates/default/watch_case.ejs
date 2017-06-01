@@ -1,6 +1,8 @@
 <% include header.ejs %>
+<!--病例详情页-->
 <script>
     $(document).ready(function() {
+        //获取病例数据
         var param = '?eng='+eng+'&HPO='+'<%-aCase.Phenotype%>'.replace(/;/g, ',')
         $.ajax({
             url: 'http://202.121.178.141/cgi-bin/MDPA/HPOName.cgi'+param,

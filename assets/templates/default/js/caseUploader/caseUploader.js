@@ -66,7 +66,7 @@
     $.fn.caseUploader.options = {
         chunkSize: 1 * 1024 * 1024,//文件分块大小，单位: B
         maxSingleSize: 5 * 1024 * 1024,//对于小文件（xls/xlsx/txt/csv格式），设置最大允许大小
-        maxBigSingleSize: 1024 * 1024 * 1024, //设置vcf格式文件的最大允许大小
+        maxBigSingleSize: 3 * 1024 * 1024 * 1024, //设置vcf格式文件的最大允许大小
         additionalData: '',//可以为文件添加自定义的信息
         caseInput: 'case-input',//本插件自带一个<input>元素，如果要使用自定的<input>元素，则将该字段替换为其他id即可
         url: '/upload',//上传文件的目标地址

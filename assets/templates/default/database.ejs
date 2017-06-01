@@ -1,10 +1,84 @@
 <% include ./header.ejs %>
+<!--病例列表页-->
 <script>
+    var searchedDisease = [];
+    $(document).ready(function() {
+        //初始化症状自动完成过滤栏
+        $("#sel_menu2").select2({
+            multiple:true,
+            placeholder: eng == 1 ? 'Please enter phenotype name or ID' : '请输入症状名或症状ID',
+            ajax:
+                {
+                    url:"http://202.121.178.141/cgi-bin/MDPA/SearchDB.cgi",
+                    dataType: 'json',
+                    delay: 600,
+                    contentType:"application/x-www-form-urlencoded;charset=UTF-8",
+                    data: function (params){
+                        return {
+                            q: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, page)
+                    {
+                        return{
+                            results: data.items
+                        };
+                    },
+                    cache:true
+                },
+            escapeMarkup: function (markup)
+            {
+                return markup;
+            },
+            minimumInputLength: 2,
+            formatInputTooShort:  eng == 1 ? 'Please enter at least 2 characters' : "请输入至少2个字符以进行检索",
+            //maximumInputLength: 40,
+            templateResult:formatRepo,
+            templateSelection:formatRepoSelection,
+            openOnEnter: false
+        }).on("select2:select", function(e){
+            searchedDisease.push(e.params.data.id);
+        }).on("select2:unselect", function(e){
+            searchedDisease.splice(searchedDisease.indexOf(e.params.data.id),1);
+        });
+    });
+    function formatRepo(repo)
+    {
+        if (repo.loading) return repo.text;
+        repo.text = repo.name;
+        var markup = '<option class="select2-option-click" value='+repo.id+'>'
+            + repo.id+'|'+repo.text+'</option>';
+        return markup;
+    }
+
+    function formatRepoSelection(repo){
+        repo.selected = true;
+        repo.name = repo.id
+        if(repo.id == null || repo.name == ""){
+            repo.id = 'Please type items'
+            repo.name = repo.text
+        }
+        return repo.text;
+    }
+
+    //AngularJS初始化
     var app = angular.module('myApp', []);
     app.controller('myCtrl', function($scope) {
         $scope.page = 0;
         $scope.searchTimes = 0;
         $scope.morePages = false;
+
+        //提交病例搜索，目前仅支持单个搜索。
+        $scope.searchSubmit = function () {
+            $scope.searchedDisease = '';
+            for (var i = 0;i < searchedDisease.length;i++){
+                $scope.searchedDisease += searchedDisease[i];
+            }
+            $scope.searchCase();
+        }
+
+        //查找病例，offset为页数。若关键词为空则为列出病例
         $scope.searchCase = function (offset) {
             if (arguments[0]){
                 if (!$scope.morePages && offset > 0) return;
@@ -46,6 +120,8 @@
                 }
             });
         };
+
+        //发送查看病例请求
         $scope.viewRequest = function(caseId, owner){
             if (confirm("是否要向\""+owner+"\"发出查看该病例的申请？")) {
                 $.ajax({
@@ -72,10 +148,16 @@
         };
         $scope.searchCase();
     });
+
 </script>
 <div class="row row-search">
-    <input class="col-md-11 input-search" placeholder="<%-lan == 'eng' ? 'Please enter a symptom to search' : '请输入症状以进行检索'%>" ng-model="searchedDisease">
-    <button class="btn btn-default col-md-1" id="search-case" ng-click="searchCase()"><%-lan == 'eng' ? 'Search' : '搜索'%></button>
+    <FORM METHOD=GET id="form1">
+        <div class="col-md-11 search-div input-search">
+            <select id="sel_menu2" name="HPO" multiple="multiple" class="form-control">
+            </select>
+        </div>
+        <input type="button" value="<%-lan == 'eng' ? 'Search' : '搜索'%>" class="btn btn-default col-md-1 search-case" ng-click="searchSubmit()">
+    </FORM>
 </div>
 <hr>
 <a href="javascript: void(0)" ng-click="searchCase(-1)">上一页</a>

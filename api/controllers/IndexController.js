@@ -1,9 +1,15 @@
+/**
+ * 控制器。
+ * 数据库查询语句参考：http://sailsjs.com/documentation/concepts/models-and-orm/query-language
+ */
+
 var Promise = require('es6-promise').Promise;
 var Crypto = require('crypto');
 var mailer = require('../services/SMTPmailer.js');
 //var searchLogger = require('../services/searchLog.js');
 var config = require('../../config');
 var fs = require('fs');
+var http_req = require('request');
 
 var pageSize = 16;
 
@@ -21,6 +27,9 @@ function getNArray(n){
     return arr;
 }
 
+/**
+ * 生成str的MD5
+ */
 function myMD5(str) {
     str += 'TBDL';
     var md5sum = Crypto.createHash('md5');
@@ -29,6 +38,12 @@ function myMD5(str) {
     return str;
 }
 
+/**
+ * Controller的结尾处，用此函数返回EJS模版，需在调用前将res.locals.view赋值为 EJS文件名（不包括扩展名）
+ * @param req
+ * @param res
+ * @returns {*}
+ */
 function quickTemplate(req, res) {
     res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
     if (typeof req.session.userName != 'undefined'){
@@ -39,6 +54,13 @@ function quickTemplate(req, res) {
     return res.templet({});
 }
 
+/**
+ * Controller的结尾处，用此函数返回错误页面EJS模版，err变量决定显示给用户的错误信息
+ * @param req
+ * @param res
+ * @param err
+ * @returns {*}
+ */
 function errTemplate(req, res, err) {
     res.locals.lan = req.session.lan == 'eng' ? 'eng' : 'chs';
     if (typeof req.session.userName != 'undefined'){
@@ -51,21 +73,37 @@ function errTemplate(req, res, err) {
     return res.templet({});
 }
 
-
+/**
+ * module.exports的以下每个成员都是一个控制器，创建一个控制器后记得在config/routes.js里面把控制器和URL绑定
+ * 每个控制器都必须接受三个参数：req, res, next
+ */
 module.exports = {
     /**
-     * index page(main page)
+     * 主页，关于req, res, next的详细信息，可在sails.js文档中查找。
+     * @param req 传入请求(request)
+     * @param res 回复（respond）
+     * @param next 使用该函数返回错误页面（return next([err]) ）。需要将错误原因通知给用户时，请用errTemplate代替它。
+     * @returns {*}
      */
     index: function(req, res, next) {
         res.locals.view = "index";
+        //lan是语言参数，目前支持中英文
         var lan = req.param('lan');
         if (typeof lan != 'undefined' && lan != '')
             req.session.lan = lan;
+        //navMod表示用户目前所在的模块（如症状诊断）
         res.locals.navMod = 0;
 
         return quickTemplate(req, res);
     },
 
+    /**
+     * 基因诊断页
+     * @param req
+     * @param res
+     * @param next
+     * @returns {*}
+     */
     geneDiag: function(req, res, next) {
         res.locals.view = "gene_diag";
         res.locals.userName = req.session.userName;
@@ -75,7 +113,11 @@ module.exports = {
     },
 
     /**
-     * list page(search result)
+     * 症状诊断结果页
+     * @param req
+     * @param res
+     * @param next
+     * @returns {*}
      */
     list: function(req, res, next) {
         var hpo = req.param("HPO");
@@ -85,6 +127,7 @@ module.exports = {
         if (typeof hpo == 'string'){
             hpo = [ hpo ];
         }
+        //在SearchLog中需要记录每次搜索。
         var logPhenotype = '';
         for (var i = 0;i < hpo.length;i++){
             res.locals.searched[i] = hpo[i].split('$');
@@ -99,17 +142,17 @@ module.exports = {
             req.connection.remoteAddress ||
             req.socket.remoteAddress ||
             req.connection.socket.remoteAddress;
-        SearchLog.create({
+        //数据库的操作由sails.js提供接口完成，并用es6-promise实现异步编程。
+        SearchLog.create({//SearchLog是针对所有用户的搜索日志
             phenotype: logPhenotype,
             guid: res.locals.guid,
             ip: ip//req.connection.remoteAddress.replace(/::ffff:/, '')//req.ip.replace(/::ffff:/, '')
-        }).then(function(){
+        }).then(function(){//.then方法即es6-promise提供的回调方法，代替传统的回调，避免回调地狱。
             res.locals.navMod = 0;
             if (typeof req.session.userName == 'undefined' || req.session.userName == '') {
                 return Promise.reject('user');
             }
-            //更新搜索记录
-            return Searches.find({
+            return Searches.find({//Searches是针对登录用户的搜索日志
                 user: req.session.userName
             })
         }).then(function(searches) {
@@ -222,10 +265,6 @@ module.exports = {
         */
     },
 
-    /**
-     * 列表页面
-     * @param  {[category]}  目录
-     */
     /*list: function(req, res, next) {
         var category = req.param("category").trim();
         var model_str = "category";
@@ -301,7 +340,11 @@ module.exports = {
     },*/
 
     /**
-     * detail page
+     * 症状详情页，显示某个症状详情
+     * @param req
+     * @param res
+     * @param next
+     * @returns {*}
      */
     detail: function(req, res, next) {
         var id = req.param("id").trim();
@@ -314,109 +357,6 @@ module.exports = {
         res.locals.view = "product_detail";
 
         return quickTemplate(req, res);
-
-
-
-
-        var categoryIds = [];
-        if (cate == "search_result"){
-            Article.findOne({
-                id: id
-            }).then(function(article) {
-                res.locals.article = article;
-                return Category.findOne({
-                    id: article.category
-                });
-            }).then(function(category) {
-
-                res.locals.currentMenu = new Array(category.dir);
-                categoryIds[0] = category.id;
-
-                if (category.parent != '0')
-                {
-                    return Category.findOne({
-                        id: category.parent
-                    });
-                }
-                else
-                {
-                    return category;
-                }
-            }).then(function(category) {
-                if (category.dir != res.locals.currentMenu[0])
-                {
-                    res.locals.currentMenu[1] = category.dir;
-                    categoryIds [1] = category.id;
-                }
-                if (category.parent != '0')
-                {
-                    return Category.findOne({
-                        id: category.parent
-                    });
-                }
-                else
-                {
-                    return category;
-                }
-            }).then(function(category) {
-                if (category.dir != res.locals.currentMenu[0] && category.dir != res.locals.currentMenu[1]) {
-                    res.locals.currentMenu[2] = category.dir;
-                    categoryIds[2] = category.id;
-                }
-                res.locals.parentCategory = category.id == 35 ? null : category;
-                res.locals.currentMenu.reverse();
-                categoryIds.reverse();
-                return Category.find({
-                    parent: categoryIds[0]
-                })
-            }).then(function(categories) {
-                res.locals.categoryList = categories;
-                var level3Id = -1;
-                if (categoryIds.length > 2) {
-                    categories.forEach(function (one, key) {
-                        if (one.listorder == '1') {
-                            level3Id = one.id;
-                        }
-                    })
-                }
-                if (level3Id != -1) {
-                    return Category.find({
-                        parent: level3Id
-                    })
-                }
-                else {
-                    return categories;
-                }
-            }).then(function(categories){
-                res.locals.category3List = categories;
-                res.locals.view = "product_detail";
-                return getImgArticles(res);
-            }, function reject(err) {
-                next(err);
-            });
-        }
-        else {
-            res.locals.originalUrl = req.originalUrl;
-
-            res.locals.parentCategory = null;
-            res.locals.currentMenu = [];
-            res.locals.category = null;
-            res.locals.categoryList = null;
-            res.locals.category3List = null;
-            getCategories(req, res).then(function (cateId) {
-                return Article.findOne({
-                    id: id,
-                    category: cateId // for check purpose
-                });
-            }).then(function (article) {
-                res.locals.article = article;
-
-                res.locals.view = "product_detail";
-                return getImgArticles(res);
-            }, function reject(err) {
-                next(err);
-            });
-        }
     },
 
     /**
@@ -429,6 +369,12 @@ module.exports = {
         return quickTemplate(req, res);
     },
 
+    /**
+     * 接收用户的用户名、密码输入，发送邮件，准备创建新用户
+     * @param req
+     * @param res
+     * @param next
+     */
     signUp: function(req, res, next) {
         var usrName = req.param("name").trim().toLowerCase();
         var psw = myMD5(req.param("password").trim());
@@ -462,6 +408,13 @@ module.exports = {
         });
     },
 
+    /**
+     * 验证注册邮件中的验证码
+     * @param req
+     * @param res
+     * @param next
+     * @returns {*}
+     */
     verify: function(req, res, next) {
         if (typeof req.param("pass") == 'undefined'){
             return errTemplate(req,res,'链接无效。');
@@ -483,8 +436,15 @@ module.exports = {
         });
     },
 
+    /**
+     * 登录验证，或登出
+     * @param req
+     * @param res
+     * @param next
+     * @returns {*}
+     */
     signIn: function(req, res, next) {
-        if (typeof req.param("name") == 'undefined'){ //sign out
+        if (typeof req.param("name") == 'undefined'){ //登出
             req.session.userName = '';
             res.locals.view = "index";
             res.locals.navMod = 0;
@@ -514,22 +474,37 @@ module.exports = {
         });
     },
 
+    /**
+     * 病历列表页
+     * @param req
+     * @param res
+     * @param next
+     * @returns {*}
+     */
     database: function(req, res, next) {
         res.locals.view = "database";
         res.locals.navMod = 3;
         return quickTemplate(req, res);
     },
 
+    /**
+     * 返回病例搜索结果
+     * @param req
+     * @param res
+     * @param next
+     */
     searchCase: function(req, res, next) {
         var searched = req.param("searched") ? req.param("searched").trim() : '';
         var page = req.param("page") ? parseInt(req.param("page").trim()) : 0;
         var skip = page * pageSize;
 
-        var queryBody = searched == '' ? {} : {
-                Phenotype: {
-                    like: "%" + searched + "%"
-                }
-            };
+        var queryBody = {};
+        if (searched != ''){//存在语法Bug，目前仅支持单个症状搜索
+            queryBody.Phenotype = {};
+            searched = searched.substr(3);
+            searched = searched.split('HP:');
+            queryBody.Phenotype.contains = searched;
+        }
         Case.count(queryBody).then(function(num){
             res.locals.finalPage = (num <= skip + pageSize);
             queryBody.skip = skip;
@@ -572,6 +547,12 @@ module.exports = {
         });
     },
 
+    /**
+     * 查看某个病例详情，带有对用户的权限检查
+     * @param req
+     * @param res
+     * @param next
+     */
     watchCase: function(req, res, next) {
         if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
             res.send('login');
@@ -628,6 +609,12 @@ module.exports = {
         });
     },
 
+    /**
+     * 对其他用户发出查看病例的请求
+     * @param req
+     * @param res
+     * @param next
+     */
     requestView: function(req, res, next) {
         if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
             res.send('login');
@@ -637,7 +624,7 @@ module.exports = {
         Request.find({
             case: id,
             requester: req.session.userName,
-            status: { '!': 'rejected' }
+            status: { '!': 'rejected' }//当被拒绝后，仍可再发送，但是若在核审中则不可再发送
         }).then(function(requests){
             if (requests.length > 0){
                 return Promise.reject('pending');
@@ -659,6 +646,12 @@ module.exports = {
         });
     },
 
+    /**
+     * 个人中心页
+     * @param req
+     * @param res
+     * @param next
+     */
     myRequest: function(req, res, next) {
         if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
             res.send('login');
@@ -724,6 +717,12 @@ module.exports = {
         });
     },
 
+    /**
+     * 对请求进行核审（接受或拒绝）
+     * @param req
+     * @param res
+     * @param next
+     */
     approveRequest: function(req, res, next) {
         if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
             res.send('login');
@@ -740,6 +739,12 @@ module.exports = {
         });
     },
 
+    /**
+     * 改变一个病例的权限状态
+     * @param req
+     * @param res
+     * @param next
+     */
     changePermission: function(req, res, next) {
         if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
             res.send('login');
@@ -756,10 +761,13 @@ module.exports = {
         });
     },
 
-    upload: function(req, res, next) {
-        res.send(200);
-    },
-
+    /**
+     * 新建病例页
+     * @param req
+     * @param res
+     * @param next
+     * @returns {*}
+     */
     newCase: function(req, res , next) {
         if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
             res.send('login');
@@ -769,6 +777,12 @@ module.exports = {
         return quickTemplate(req, res);
     },
 
+    /**
+     * 新建病例
+     * @param req
+     * @param res
+     * @param next
+     */
     addCase: function(req, res , next) {
         if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
             res.send('login');
@@ -814,6 +828,13 @@ module.exports = {
 
     },
 
+    /**
+     * 载入病例图片
+     * @param req
+     * @param res
+     * @param next
+     * @returns {*}
+     */
     casePicture: function(req, res, next) {
         if (typeof req.session.userName == 'undefined' || req.session.userName == ''){
             return errTemplate(req,res,'访问出错，请登录。');
@@ -834,143 +855,12 @@ module.exports = {
         })
     },
 
-
-
     /**
-     * 详情页 
-     * @param  {[category]}  目录
-     * @param  {[id]}  ID
-     */
-    /*detail: function(req, res, next) {
-        var category = req.param("category").trim();
-        var id = req.param("id").trim();
-        var model_str = "category";
-        var data= null;
-        var model;
-
-        var current_category = null;
-        Promise.resolve().then(function() {
-                if (category) {
-                    return Category.findOne({
-                        dir: category
-                    });
-                } else {
-                    return new Promise(function(resolve, reject) {
-                        return resolve(null);
-                    });
-                }
-            })
-            .then(function(category) {
-                current_category = category;
-                return Category.getTree({
-                    model: category.model
-                });
-            })
-            .then(function(getTree) {
-                res.locals.categorys = getTree;
-
-                model_str = Util.firstUper(current_category.model);
-                model = eval("model = " + model_str);
-
-                return model.findOne({
-                    id: id
-                });
-            })
-
-        .then(function(rs) {
-                data = rs;
-                res.locals.data = rs;
-                res.locals[current_category.model] = rs;
-                console.log(current_category.model);
-                // 获取热门数据
-                return model.find({
-                    limit: 5
-                });
-            })
-            .then(function(hot_records) {
-                res.locals.hot_records = hot_records;
-
-                res.locals.category = current_category;
-                res.locals.currentMenu = category;
-                res.locals.theme = "default";
-                res.locals.view = current_category.tpldetail ? category.tpldetail : current_category.model + "_detail";
-                if(data.tpl){
-                    res.locals.view = data.tpl;
-                }
-                return res.templet({});
-            }, function(err) {
-                return next(err);
-            });
-    }*/
-
-    /**
-     * 搜索，返回搜索结果页
+     * 生成验证码图片
      * @param req
      * @param res
      * @param next
      */
-    search: function(req, res, next) {
-        var searchWord = req.param("keyWord", "") || "";
-        res.locals.searchWord = searchWord;
-
-        if (searchWord === ""){
-            res.locals.articleList = [];res.locals.currentMenu = new Array(0);
-            res.locals.theme="default";
-            res.locals.view="search_result";
-            return getImgArticles(res);
-        }
-        else {
-            var page = req.param("page") ? parseInt(req.param("page").trim()) : 1;
-            var skip = (page - 1) * pageSize;
-            res.locals.currentPage = page;
-
-            res.locals.originalUrl = req.originalUrl.split('?', 1) + "?keyWord=" + searchWord;
-            Article.count({
-                or: [
-                    {
-                        title: {
-                            like: "%" + searchWord + "%"
-                        }
-                    },
-                    {
-                        keywords: {
-                            like: "%" + searchWord + "%"
-                        }
-                    }
-                ]
-            }).then(function(articleCount) {
-                var pageCount = (articleCount - 1) / pageSize + 1;
-                res.locals.pages = getNArray(pageCount);
-
-                return Article.find({
-                    or: [
-                        {
-                            title: {
-                                like: "%" + searchWord + "%"
-                            }
-                        },
-                        {
-                            keywords: {
-                                like: "%" + searchWord + "%"
-                            }
-                        }
-                    ],
-                    skip: skip,
-                    limit: pageSize
-                });
-            }).then(function (articles) {
-                res.locals.articleList = articles;
-
-                res.locals.currentMenu = new Array(0);
-                res.locals.theme = "default";
-                res.locals.view = "search_result";
-                return getImgArticles(res);
-            }, function reject(err) {
-                next(err);
-            });
-        }
-    },
-
     randompng: function(req,res,next){
         var code = '0123456789';
         var length = 4;
@@ -995,20 +885,16 @@ module.exports = {
         res.end(imgbase64);
     },
 
-    //测试用
-    test: function (req, res, next) {
-        console.log(req.body);
-        if (req.body.finish == 'true'){
-            res.send('finish');
-        } else {
-            res.send('next');
-        }
-    },
-
+    /**
+     * 找回密码页，或更新密码
+     * @param req
+     * @param res
+     * @param next
+     * @returns {*}
+     */
     newPassword: function (req, res, next) {
-
         res.locals.loggedIn = req.session.userName != undefined && req.session.userName != '';
-        if (req.method.toUpperCase() == 'POST'){
+        if (req.method.toUpperCase() == 'POST'){//更新密码
             if (!res.locals.loggedIn){
                 return errTemplate(req, res, '错误，您需要先登录。');
             }
@@ -1022,13 +908,20 @@ module.exports = {
                 return next(err);
             });
         } else {
+            //找回密码页
             res.locals.view = 'new_password';
             return quickTemplate(req, res);
         }
     },
 
+    /**
+     * 找回密码邮箱验证码验证，或发出找回密码验证邮件
+     * @param req
+     * @param res
+     * @param next
+     */
     emailVerify: function (req, res, next) {
-        if (req.param("email") != undefined && req.param("email") != ''){
+        if (req.param("email") != undefined && req.param("email") != ''){//发出找回密码验证邮件
             var email = req.param("email").trim();
             User.find({ email: email }).then(function (users) {
                 if (users.length > 0){
@@ -1044,7 +937,7 @@ module.exports = {
                     res.send('exist')
                 }
             });
-        } else if (req.param("code") != undefined && req.param("code") != '') {
+        } else if (req.param("code") != undefined && req.param("code") != '') {//找回密码邮箱验证码验证
             if (req.session.emailVerifySecret == undefined || req.session.emailVerifySecret == ''){
                 return res.send('exist');
             }
@@ -1056,5 +949,26 @@ module.exports = {
                 res.send('code');
             }
         }
+    },
+
+
+    //测试用
+    test: function (req, res, next) {
+        User.findOne({
+            name: 'admin'
+        }).then(function(user){
+            http_req({
+                url: 'http://202.121.178.141/cgi-bin/MDPA/FileOperator.cgi',
+                method: "POST",
+                formData: {
+                    user: 'admin',
+                    key: user.password
+                }
+            }, function(error, response, body) {
+                console.log('error: '+error);
+                console.log('response: '+response);
+                console.log('body: '+body);
+            });
+        });
     }
 };

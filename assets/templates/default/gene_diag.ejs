@@ -1,5 +1,5 @@
 <% include ./header.ejs %>
-
+<!--基因诊断页-->
 
 <script>
     var app = angular.module('myApp', []);
@@ -37,6 +37,7 @@
         $scope.pageDisease = [];//当页显示的疾病的diseaseData index
         $scope.filterLoad = true;
 
+        //分页器初始化
         $scope.diseasePagination = function(){
             var $paginationDisease = $('#pagination-disease');
             var pageSize = 10;
@@ -207,6 +208,7 @@
             $('#myModal').modal('hide');
         };
 
+        //上传用户在页面中新建的文件
         $scope.upload = function(){
             if ($scope.files.length == 0){
                 return alert('请先添加文件！');
@@ -271,6 +273,7 @@
                         success: function(){
                             alert('上传成功！请记录guid：'+ guid + '\n稍后在本页查看结果。');
                             $scope.inputGuid = guid;
+                            $scope.$apply();
                         },
                         error: function(err) {
                             var str = '';
@@ -483,7 +486,7 @@
         <p>基因或染色体变异文件：</p>
         <button onclick="newGene()" class="btn btn-info">新建</button>
         <script>
-            var mytime;
+            //测试用
             function upload(){
                 //var data = pako.gzip('11111111111111111222222222222222222222333',{to: 'string'});
                 var originalData = '11111111111111111222222222222222222222333';
@@ -604,7 +607,7 @@
         <input type="file" multiple="multiple" name="file" id="file">
         <div id="caseUpload"></div>
         持有guid的用户，请在此输入并查看结果：
-        <input type="text" ng-model="inputGuid">
+        <input type="text" ng-model="inputGuid" ng-init="">
         <button class="btn btn-primary" ng-click="getCaseResult()">查看</button>
     </div>
     <div class="row">

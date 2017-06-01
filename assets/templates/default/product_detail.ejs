@@ -3,6 +3,7 @@
 <!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
 <!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<!--疾病详情页-->
 <head>
     <meta charset="UTF-8">
 
@@ -17,7 +18,7 @@
 
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 
-
+    <!--cytoscape样式-->
     <link rel="stylesheet" href="<%=static_dir%>/js/cytoscape/biogrid_jquery.qtip.css"/>
     <link rel="stylesheet" href="<%=static_dir%>/js/cytoscape/jquery.qtip.min.css"/>
     <link rel="stylesheet" href="<%=static_dir%>/js/cytoscape/network.css"/>
@@ -52,6 +53,7 @@
     <script src="<%=static_dir%>/http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 
+    <!--cytoscape JS-->
     <script src="<%=static_dir%>/js/cytoscape/cola.v3.min.js"></script>
     <script src="<%=static_dir%>/js/cytoscape/cytoscape.min.js"></script>
     <script src="<%=static_dir%>/js/cytoscape/jquery.qtip.min.js"></script>
@@ -124,6 +126,7 @@
             }
 
             $(document).ready(function() {
+                //注册模态框打开和关闭事件
                 $('#myModal').on('shown.bs.modal', buildCY).on('hide.bs.modal', function(){
                     $('.qtip-pos-bl').remove();
                 });
@@ -200,7 +203,7 @@
                 <div id="symptoms-other">
                 </div>
                 <script>
-                    <!--获取网络图片所需数据并显示弹窗-->
+                    //获取网络图片所需数据并显示弹窗
                     function buildNetwork(index){
                         var params = '?HPO=' + matchedPheno[index][0];
                         params += '&HPO=' + matchedPheno[index][1];
@@ -243,17 +246,7 @@
 
             </div>
         </div>
-        <div class="row">
-            <!--病例信息-->
-        </div>
-
-
-
-
-
-
-
-
+        <!--cytoscape JS-->
         <script src="<%=static_dir%>/js/cytoscape/arbor.js"></script>
         <script src="<%=static_dir%>/js/cytoscape/cytoscape-arbor.js"></script>
         <script src="<%=static_dir%>/js/cytoscape/cxtmenu.js"></script>

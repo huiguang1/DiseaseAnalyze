@@ -1,48 +1,11 @@
 <% include ./header.ejs %>
+<!--症状诊断页-->
 <div class="row">
-
-
-    <div id="alertDat"></div>
-    <!--script>
-        var alertDat = '';
-        function addDescription(){
-            recurConstruct('0003011', 0);
-            $('#alertDat').html(alertDat);
-            alertDat = '';
-        }
-        function recurConstruct(id, indent){
-            indent += 4;
-            $.ajax(
-                {
-                    type : 'GET',
-                    url : 'http://202.121.178.141/cgi-bin/MDPA/HPOTreeData.cgi',
-                    data : "ID=" + id,
-                    async: false,
-                    success : function(data)
-                    {
-                        var raw = $.parseJSON(data);
-                        for (var i in raw){
-                            for (var j = 0;j < indent;j++){
-                                alertDat += '&nbsp;';
-                            }
-                            alertDat += raw[i].title + '：' + raw[i].tooltip + '<br/>';
-                            if (raw[i].isLazy){
-                                recurConstruct(raw[i].key, indent);
-                            }
-                        }
-                    }
-                }
-            );
-            indent -= 4;
-        }
-    </script>
-    <button onclick="addDescription();">addDescription</button-->
-
-
     <!--左侧边栏-->
     <div class="col-md-4">
         <script language="javascript">
             $(document).ready(function() {
+                //初始化左侧症状树形图
                 $.ui.dynatree.nodedatadefaults["icon"] = false;
                 $("#tree").dynatree({
                     title: "症状树形图",
@@ -65,11 +28,13 @@
                     }
                 });
             });
+            //显示树形图和隐藏按钮
             function showTree(){
                 $('#show-tree').hide();
                 $('#hide-tree').show();
                 $('#tree').show();
             }
+            //隐藏树形图，显示显示按钮
             function hideTree(){
                 $('#show-tree').show();
                 $('#hide-tree').hide();
@@ -82,6 +47,7 @@
         </div>
         <script>
             $(function() {
+                //初始化症状搜索热词图
                 var $myCloud = $("#phenotype-cloud");
                 $.ajax({
                     url: 'http://202.121.178.141/cgi-bin/MDPA/HotWords.cgi?eng='+eng,
@@ -111,6 +77,7 @@
         <div class="row search-area">
             <script type="text/javascript">
                 $(document).ready(function() {
+                    //初始化症状自动完成搜索栏
                     $("#sel_menu2").select2({
                         multiple:true,
                         placeholder: eng == 1 ? 'Please enter phenotype name or ID' : '请输入症状名或症状ID',
@@ -238,34 +205,31 @@
                 $("#table-tip").hide();
                 $("#diseaseTable").show();
                 var $table = $('#tableBody');
-                $.ajax(
-                        {
-                            type : 'GET',
-                            url : 'http://202.121.178.141/cgi-bin/MDPA/NodeInfo.cgi',
-                            data : "ID=" + id + '&eng=' + eng,
-                            success : function(data)
-                            {
-                                var row = $.parseJSON(data);
-                                var newRow = $('<tr role="row" class="color-palette" id="row-hp-'+ id +'"></tr>');
-                                var newName = $('<td>'+row.chname+'</td>');
-                                if (row.description == "NULL") row.description = "";
-                                var newDcrp = $('<td>'+row.description+'</td>');
-                                var links = "";
-                                for (var i in row.children){
-                                    links += '<a onclick="addSelect(\''+row.children[i].key+'\', \''+row.children[i].chname+
-                                                    '\')">'+row.children[i].chname+'</a>&nbsp;';
-                                }
-                                var newLeaf = $('<td>'+links+'</td>');
-                                newRow.append(newName);
-                                newRow.append(newDcrp);
-                                newRow.append(newLeaf);
-                                $table.prepend(newRow);
-                            },
-                            error : function()
-                            {
-                                alert("网络连接异常");
-                            }
-                        });
+                $.ajax({
+                    type: 'GET',
+                    url: 'http://202.121.178.141/cgi-bin/MDPA/NodeInfo.cgi',
+                    data: "ID=" + id + '&eng=' + eng,
+                    success: function (data) {
+                        var row = $.parseJSON(data);
+                        var newRow = $('<tr role="row" class="color-palette" id="row-hp-' + id + '"></tr>');
+                        var newName = $('<td>' + row.chname + '</td>');
+                        if (row.description == "NULL") row.description = "";
+                        var newDcrp = $('<td>' + row.description + '</td>');
+                        var links = "";
+                        for (var i in row.children) {
+                            links += '<a onclick="addSelect(\'' + row.children[i].key + '\', \'' + row.children[i].chname +
+                                '\')">' + row.children[i].chname + '</a>&nbsp;';
+                        }
+                        var newLeaf = $('<td>' + links + '</td>');
+                        newRow.append(newName);
+                        newRow.append(newDcrp);
+                        newRow.append(newLeaf);
+                        $table.prepend(newRow);
+                    },
+                    error: function () {
+                        alert("网络连接异常");
+                    }
+                });
             }
             //在列表中删除一项
             function removeRow(id) {

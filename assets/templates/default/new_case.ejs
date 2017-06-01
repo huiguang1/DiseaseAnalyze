@@ -1,11 +1,13 @@
 <% include ./header.ejs %>
-
+<!--新建病例页-->
 
 <script>
     var app = angular.module('myApp', []);
     app.controller('myCtrl', function($scope) {
         $scope.chroms = [];
         $scope.genes = [];
+
+        //新增染色体项
         $scope.addChrom = function () {
             if ($scope.patient == undefined || $scope.chromosome == undefined || $scope.chromosomeArm == undefined
                 || $scope.location == undefined || $scope.location == '' || $scope.variationType == undefined){
@@ -21,10 +23,12 @@
             $scope.chroms.push(newChrom);
             $scope.chromsInput = JSON.stringify($scope.chroms);
         };
+        //删除染色体项
         $scope.deleteChrom = function (chrom) {
             $scope.chroms.splice($scope.chroms.indexOf(chrom), 1);
             $scope.chromsInput = JSON.stringify($scope.chroms);
         }
+        //新增基因项
         $scope.addGene = function () {
             if ($scope.gene == undefined || $scope.gene == ''){
                 return alert('请输入基因名！');
@@ -36,6 +40,7 @@
             $scope.genes.push(newGene);
             $scope.genesInput = JSON.stringify($scope.genes);
         };
+        //删除基因项
         $scope.deleteGene = function (gene) {
             $scope.genes.splice($scope.genes.indexOf(gene), 1);
             $scope.genesInput = JSON.stringify($scope.genes);
@@ -296,6 +301,7 @@
     </form>
     <script>
         function newCase(form) {
+            //图片验证和表单发送
             var pictureFile = $('#casePicture')[0].files[0];
             if (pictureFile != undefined && pictureFile.size > 2 * 1024 * 1024){
                 alert('抱歉，上传的图片不得大于2MB，请修改');
