@@ -5,7 +5,8 @@
  * 该版本仅支持单例（一个页面中仅能有一个同时运行）
  *
  * 依赖：
- * xlsx.js - xlsx.core.min.js
+ * xlsx.js - xlsx.core.min.js Excel文件解析
+ * pako.js - pako.min.js 文件数据压缩
  *
  */
 
